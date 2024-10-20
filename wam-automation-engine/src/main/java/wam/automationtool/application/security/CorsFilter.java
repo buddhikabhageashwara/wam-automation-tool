@@ -1,0 +1,53 @@
+package wam.automationtool.application.security;
+
+import static org.springframework.http.HttpHeaders.ORIGIN;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
+import jakarta.servlet.*;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+@Component
+public class CorsFilter implements Filter {
+
+  @Value("#{'${allowed.origins}'.split(',')}")
+  private List<String> allowedOrigins;
+
+  /**
+   * Add response cors
+   *
+   * @param request API request
+   * @param response API response
+   * @param chain to continue filtering2
+   * @throws IOException Using IO exception might be occurred
+   * @throws ServletException Using Servlet exception might be occurred
+   */
+  @Override
+  public void doFilter(
+      final ServletRequest request, final ServletResponse response, final FilterChain chain)
+      throws IOException, ServletException {
+    HttpServletResponse httpServletResponse = (HttpServletResponse) response;
+    HttpServletRequest httpServletRequest = (HttpServletRequest) request;
+    final String origin = httpServletRequest.getHeader(ORIGIN);
+    final List<String> configuredMatchedAllowOriginList =
+            allowedOrigins.stream().filter(s -> origin.contains(s)).collect(Collectors.toList());
+    if (!configuredMatchedAllowOriginList.isEmpty()) {
+      httpServletResponse.setHeader("Access-Control-Allow-Origin", origin);
+      request.setAttribute(ORIGIN, origin);
+    }
+    httpServletResponse.setHeader("Access-Control-Allow-Credentials", "true");
+    httpServletResponse.setHeader(
+        "Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT,DELETE");
+    httpServletResponse.setHeader(
+        "Access-Control-Allow-Headers",
+        "Access-Control-Allow-Headers,"
+            + " Origin,Accept,"
+            + " X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers,"
+            + " custom-id, Authorization");
+    chain.doFilter(request, httpServletResponse);
+  }
+}
