@@ -11,6 +11,7 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.UpdateTimestamp;
+import wam.automationtool.domain.entity.BaseEntity;
 import wam.automationtool.domain.entity.permission.Permission;
 import wam.automationtool.domain.entity.user.type.UserType;
 
@@ -25,7 +26,7 @@ import wam.automationtool.domain.entity.user.type.UserType;
     indexes = {
       @Index(name = "user_type_permission_pkey", columnList = "ID", unique = true),
     })
-public class UserTypePermission {
+public class UserTypePermission extends BaseEntity {
 
   @Id
   @GeneratedValue(generator = "UUID")
@@ -51,19 +52,4 @@ public class UserTypePermission {
       nullable = false,
       columnDefinition = "VARCHAR(36)")
   private Permission permission;
-
-  @NotNull
-  @Column(name = "IsDeleted")
-  private Boolean isDeleted = false;
-
-  @CreationTimestamp
-  @Temporal(TemporalType.TIMESTAMP)
-  @Column(name = "CreateDate")
-  private Date createDate;
-
-  @UpdateTimestamp
-  @Temporal(TemporalType.TIMESTAMP)
-  @Column(name = "ModifyDate")
-  private Date modifyDate;
-
 }

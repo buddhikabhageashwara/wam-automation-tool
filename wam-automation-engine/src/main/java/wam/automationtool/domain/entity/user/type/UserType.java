@@ -54,7 +54,7 @@ public class UserType {
           columnDefinition = "VARCHAR(36)")
   private String id;
 
-  @Column(name = "userTypeName", nullable = false)
+  @Column(name = "userTypeName", nullable = false, unique = true)
   private String userTypeName;
 
   @Column(name = "description", columnDefinition = "LONGTEXT")

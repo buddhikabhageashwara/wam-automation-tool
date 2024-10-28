@@ -16,6 +16,7 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.slf4j.MDC;
 import static wam.automationtool.application.config.AppConstant.CORRELATION_ID_LOG_VAR_NAME;
 import static wam.automationtool.application.config.AppConstant.CustomHeaders.CORRELATION_ID_HEADER;
+import static wam.automationtool.application.config.AppConstant.CREATED_MODIFIED_USER_ID;
 
 @Slf4j
 public class AuthFilter implements Filter {
@@ -67,6 +68,7 @@ public class AuthFilter implements Filter {
       log.error("Spring Security Filter Chain Exception: {}", e.getMessage());
       resolver.resolveException(httpRequest, httpResponse, null, e);
     } finally {
+      MDC.remove(CREATED_MODIFIED_USER_ID);
       MDC.remove(CORRELATION_ID_LOG_VAR_NAME);
     }
   }

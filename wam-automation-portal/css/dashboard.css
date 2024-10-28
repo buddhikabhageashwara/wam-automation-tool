@@ -1,0 +1,12 @@
+.menu-item {
+    cursor: pointer;
+}
+
+.menu-item:hover {
+    background-color: #f1f1f1; /* Change background on hover */
+}
+
+.menu-item.active {
+    background-color: #007bff; /* Highlight active menu item */
+    color: white; /* Change text color for active item */
+}

@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import wam.automationtool.application.dto.permission.PermissionDto;
-import wam.automationtool.domain.entity.permission.PermissionType;
 import wam.automationtool.domain.entity.permission.Permission;
+import wam.automationtool.domain.entity.permission.PermissionType;
 import wam.automationtool.domain.entity.user.type.UserType;
 import wam.automationtool.domain.entity.usertype.permission.UserTypePermission;
 
@@ -40,9 +40,8 @@ public class PermissionTransformer {
    */
   public Permission permissionTypeToPermission(final PermissionType permissionType) {
     return Permission.builder()
-            .permissionType(permissionType.getId())
+            .permissionType(permissionType.getPermissionType())
             .description(permissionType.getDescription())
-            .isDeleted(false)
             .build();
   }
 
@@ -52,9 +51,10 @@ public class PermissionTransformer {
    * @param permission the Permission entity to be updated
    * @return the updated Permission entity
    */
-  public Permission existingPermissionToPermission(final Permission permission) {
-    permission.setPermissionType(permission.getPermissionType());
-    permission.setDescription(permission.getPermissionType());
+  public Permission existingPermissionToPermission(final Permission permission,
+                                                   final PermissionType permissionType) {
+    permission.setPermissionType(permissionType.getPermissionType());
+    permission.setDescription(permissionType.getDescription());
     return permission;
   }
 
@@ -70,7 +70,6 @@ public class PermissionTransformer {
     return UserTypePermission.builder()
             .permission(permission)
             .userType(userType)
-            .isDeleted(false)
             .build();
   }
 }

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset Password - WAM Automation Tool</title>
+    <link rel="icon" href="image/favicon.ico" type="image/x-icon">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/my-profile.css">
+</head>
+<body>
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Reset Password</h2>
+
+    <form id="resetPasswordForm">
+        <div class="mb-3">
+            <label for="currentPassword" class="form-label">Current Password</label>
+            <input type="password" class="form-control" id="currentPassword" required>
+        </div>
+        <div class="mb-3">
+            <label for="newPassword" class="form-label">New Password</label>
+            <input type="password" class="form-control" id="newPassword" required>
+        </div>
+        <div class="mb-3">
+            <label for="confirmPassword" class="form-label">Confirm New Password</label>
+            <input type="password" class="form-control" id="confirmPassword" required>
+        </div>
+
+        <!-- Error/Success message box placed before the Reset button -->
+        <div id="errorContainer" class="alert" style="display: none;"></div>
+
+        <button type="submit" class="btn btn-primary" id="resetPasswordBtn">Reset Password</button>
+    </form>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="js/my-profile.js"></script>
+<script src="js/wam-automation-portal-properties.js"></script>
+</body>
+</html>

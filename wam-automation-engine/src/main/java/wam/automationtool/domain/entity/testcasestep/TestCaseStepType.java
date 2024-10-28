@@ -1,10 +1,10 @@
-package wam.automationtool.domain.entity.permission;
+package wam.automationtool.domain.entity.testcasestep;
 
 import java.util.Arrays;
 import lombok.Getter;
 
 @Getter
-public enum PermissionType {
+public enum TestCaseStepType {
   HOME(
           "HOME",
           "Home",
@@ -76,7 +76,7 @@ public enum PermissionType {
   private final boolean isDisplay;
   private final String description;
 
-  PermissionType(
+  TestCaseStepType(
           final String id,
           final String name,
           final String page,
@@ -97,8 +97,8 @@ public enum PermissionType {
    * @param name the name of the permission type
    * @return the corresponding PermissionType or HOME if not found
    */
-  public static PermissionType getByValue(final String name) {
-    return Arrays.stream(PermissionType.values())
+  public static TestCaseStepType getByValue(final String name) {
+    return Arrays.stream(TestCaseStepType.values())
             .filter(enumRole -> enumRole.name.equals(name))
             .findFirst()
             .orElse(HOME);

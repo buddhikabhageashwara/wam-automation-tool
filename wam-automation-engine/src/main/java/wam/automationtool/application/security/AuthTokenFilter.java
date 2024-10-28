@@ -4,10 +4,12 @@ import static wam.automationtool.application.config.AppConstant.AuthConstants.AU
 import static wam.automationtool.application.config.AppConstant.AuthConstants.AUTH_TOKEN_VALIDATION_CODE;
 import static wam.automationtool.application.config.AppConstant.AuthConstants.SERVICE_PERMISSION_CODE;
 import static wam.automationtool.application.config.AppConstant.ClaimName.WAM_AUTOMATION_USER_DETAILS;
+import static wam.automationtool.application.config.AppConstant.CREATED_MODIFIED_USER_ID;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -50,6 +52,7 @@ public class AuthTokenFilter {
       final WAMAutomationUserDetailsDto wamAutomationUserDetailsDto =
               wamAutomationJWTTokenUtil.validateWAMAutomationToken(headerAuthToken);
       request.setAttribute(WAM_AUTOMATION_USER_DETAILS, wamAutomationUserDetailsDto);
+      MDC.put(CREATED_MODIFIED_USER_ID, wamAutomationUserDetailsDto.getUserId());
 
       // Combine servlet path and HTTP method (e.g., "/v1/wam/automation/home/details/GET")
       final String requestPathWithMethod = request.getServletPath() + "/" + request.getMethod();

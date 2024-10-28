@@ -13,7 +13,8 @@ public class UserTypeTransformer {
   /**
    * Transforms a list of UserType entities to a list of UserTypeDto objects.
    * This method maps each UserType entity to a UserTypeDto, keeping only
-   * relevant fields for the DTO, like the ID and user type name.
+   * relevant fields for the DTO, like the ID and user type name, and excludes
+   * those with the name "SUPER_ADMIN".
    *
    * @param userTypeList A list of UserType entities to be transformed.
    * @return List<UserTypeDto> A list of DTOs representing the user types.
@@ -21,15 +22,16 @@ public class UserTypeTransformer {
   public List<UserTypeDto> userTypeListToUserTypeDtoList(final List<UserType> userTypeList) {
     List<UserTypeDto> userTypeDtoList =
             userTypeList.stream()
-                    .map(
-                            userType ->
-                                    UserTypeDto.builder()
-                                            .id(userType.getId())
-                                            .userTypeName(userType.getUserTypeName())
-                                            .build())
+                    .filter(userType -> !"SUPER_ADMIN".equals(userType.getUserTypeName()))
+                    .map(userType ->
+                            UserTypeDto.builder()
+                                    .id(userType.getId())
+                                    .userTypeName(userType.getUserTypeName())
+                                    .build())
                     .collect(Collectors.toList());
     return userTypeDtoList;
   }
+
 
   /**
    * Converts a UserTypeAddRequestDto object to a UserType entity. This is

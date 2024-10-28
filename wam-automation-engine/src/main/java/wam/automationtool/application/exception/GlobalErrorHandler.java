@@ -11,11 +11,14 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
@@ -38,6 +41,28 @@ public final class GlobalErrorHandler extends ResponseEntityExceptionHandler {
   public GlobalErrorHandler(final ResourceMessages resourceMessages) {
 
     this.resourceMessages = resourceMessages;
+  }
+
+  @Override
+  protected ResponseEntity<Object> handleMethodArgumentNotValid(
+      final MethodArgumentNotValidException exception,
+      final HttpHeaders headers,
+      final HttpStatusCode status,
+      final WebRequest request) {
+    final List<CustomError> errors =
+            exception.getBindingResult().getFieldErrors().stream()
+            .map(
+                error ->
+                    new CustomError(
+                        error.getField()
+                            + ": "
+                            + resourceMessages.getErrorMessage(error.getDefaultMessage())))
+            .distinct()
+            .collect(Collectors.toList());
+    final ErrorResponse errorResponse =
+        ErrorResponse.builder().code(REQUEST_FIELD_VALIDATION_CODE).errors(errors).build();
+    log.error("MethodArgumentNotValidException: {}", exception.getMessage());
+    return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
   }
 
   @ExceptionHandler({UserTypeExistException.class})

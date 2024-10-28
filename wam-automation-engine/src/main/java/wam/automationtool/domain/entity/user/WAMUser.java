@@ -20,6 +20,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.UpdateTimestamp;
 import wam.automationtool.domain.entity.user.type.UserType;
 
@@ -37,9 +38,15 @@ import wam.automationtool.domain.entity.user.type.UserType;
 public class WAMUser {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column(name = "ID", unique = true, nullable = false)
-  private Long id;
+  @GeneratedValue(generator = "UUID")
+  @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
+  @Column(
+      name = "ID",
+      unique = true,
+      nullable = false,
+      updatable = false,
+      columnDefinition = "VARCHAR(36)")
+  private String id;
 
   @Column(name = "firstName", nullable = false)
   private String firstName;

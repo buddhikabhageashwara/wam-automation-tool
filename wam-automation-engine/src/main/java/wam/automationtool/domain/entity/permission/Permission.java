@@ -23,6 +23,7 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.UpdateTimestamp;
+import wam.automationtool.domain.entity.BaseEntity;
 import wam.automationtool.domain.entity.user.type.UserType;
 
 @Getter
@@ -36,7 +37,7 @@ import wam.automationtool.domain.entity.user.type.UserType;
     indexes = {
       @Index(name = "permission_pkey", columnList = "ID", unique = true),
     })
-public class Permission {
+public class Permission extends BaseEntity {
 
   @Id
   @GeneratedValue(generator = "UUID")
@@ -54,20 +55,6 @@ public class Permission {
 
   @Column(name = "description", columnDefinition = "LONGTEXT")
   private String description;
-
-  @NotNull
-  @Column(name = "IsDeleted")
-  private Boolean isDeleted = false;
-
-  @CreationTimestamp
-  @Temporal(TemporalType.TIMESTAMP)
-  @Column(name = "CreateDate")
-  private Date createDate;
-
-  @UpdateTimestamp
-  @Temporal(TemporalType.TIMESTAMP)
-  @Column(name = "ModifyDate")
-  private Date modifyDate;
 
   // Many-to-many relationship with UserType
   @ManyToMany(mappedBy = "permissions", fetch = FetchType.LAZY, cascade = CascadeType.ALL)

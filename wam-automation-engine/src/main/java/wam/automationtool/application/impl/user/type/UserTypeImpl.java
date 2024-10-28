@@ -44,7 +44,7 @@ public class UserTypeImpl extends AuthDetailsProvider implements UserTypeService
             userTypeDomainService.findByUserTypeName(upperCaseUserType);
     if (existingUserType.isPresent()) {
       throw new UserTypeExistException(
-              HttpStatus.BAD_GATEWAY, USER_TYPE_ALREADY_EXIST_CODE, "error.user.type.already.exist");
+              HttpStatus.BAD_REQUEST, USER_TYPE_ALREADY_EXIST_CODE, "error.user.type.already.exist");
     }
     final UserType userType =
             userTypeTransformer.userTypeAddRequestDtoToUserType(userTypeAddRequestDTO);

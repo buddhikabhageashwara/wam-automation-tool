@@ -105,7 +105,7 @@ public class UserImpl extends AuthDetailsProvider implements UserService {
    * @param wamUserId the ID of the user being checked.
    * @return true if the user is a Super Admin, false otherwise.
    */
-  private boolean isSuperAdmin(final long wamUserId) {
+  private boolean isSuperAdmin(final String wamUserId) {
     final boolean isSuperAdmin =
         wamUserDomainService
             .findFirstUser()

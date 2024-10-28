@@ -28,7 +28,7 @@ public final class PermissionController {
     return ResponseEntity.ok(permissionService.getPermission());
   }
 
-  @PostMapping("/{permission-id}/user-types/{user-type-id}")
+  @PostMapping("/{permission-id}/usertypes/{user-type-id}")
   public ResponseEntity<Void> assignPermission(
       @PathVariable("permission-id") String permissionId,
       @PathVariable("user-type-id") String userTypeId) {

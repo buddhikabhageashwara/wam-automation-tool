@@ -1,0 +1,1 @@
+var wamAutomationEngineBaseURL = "http://localhost:8087/v1/wam/automation/";

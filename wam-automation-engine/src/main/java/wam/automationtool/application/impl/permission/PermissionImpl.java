@@ -13,8 +13,8 @@ import wam.automationtool.application.dto.permission.PermissionDto;
 import wam.automationtool.application.dto.permission.PermissionResponseDto;
 import wam.automationtool.application.exception.UserTypeOrPermissionNotExistException;
 import wam.automationtool.application.transform.PermissionTransformer;
-import wam.automationtool.domain.entity.permission.PermissionType;
 import wam.automationtool.domain.entity.permission.Permission;
+import wam.automationtool.domain.entity.permission.PermissionType;
 import wam.automationtool.domain.entity.user.type.UserType;
 import wam.automationtool.domain.entity.usertype.permission.UserTypePermission;
 import wam.automationtool.domain.service.PermissionDomainService;
@@ -33,33 +33,33 @@ public class PermissionImpl extends AuthDetailsProvider implements PermissionSer
   private final PermissionTransformer permissionTransformer;
 
   /**
-   * Adds permissions based on the defined PermissionType.
-   * If a permission of a specific type already exists, it updates the existing permission;
-   * otherwise, it creates a new permission.
+   * Adds permissions based on the defined PermissionType. If a permission of a specific type
+   * already exists, it updates the existing permission; otherwise, it creates a new permission.
    */
   @Override
   public void addPermission() {
     Arrays.stream(PermissionType.values())
-            .forEach(
-                    permissionType -> {
-                      final Optional<Permission> optionalPermission =
-                              permissionDomainService.findByPermissionType(permissionType.getPermissionType());
-                      if (optionalPermission.isPresent()) {
-                        final Permission existingPermission =
-                                permissionTransformer.existingPermissionToPermission(optionalPermission.get());
-                        permissionDomainService.update(existingPermission);
-                      } else {
-                        final Permission permission =
-                                permissionTransformer.permissionTypeToPermission(permissionType);
-                        permissionDomainService.add(permission);
-                      }
-                    });
+        .forEach(
+            permissionType -> {
+              final Optional<Permission> optionalPermission =
+                  permissionDomainService.findByPermissionType(permissionType.getPermissionType());
+              if (optionalPermission.isPresent()) {
+                final Permission existingPermission =
+                    permissionTransformer.existingPermissionToPermission(
+                        optionalPermission.get(), permissionType);
+                permissionDomainService.update(existingPermission);
+              } else {
+                final Permission permission =
+                    permissionTransformer.permissionTypeToPermission(permissionType);
+                permissionDomainService.add(permission);
+              }
+            });
   }
 
   /**
-   * Assigns a specific permission to a user type.
-   * Validates that both the permission and user type exist before proceeding.
-   * If either does not exist, it throws a UserTypeOrPermissionNotExistException.
+   * Assigns a specific permission to a user type. Validates that both the permission and user type
+   * exist before proceeding. If either does not exist, it throws a
+   * UserTypeOrPermissionNotExistException.
    *
    * @param permissionId the ID of the permission to assign
    * @param userTypeId the ID of the user type to assign the permission to
@@ -71,16 +71,17 @@ public class PermissionImpl extends AuthDetailsProvider implements PermissionSer
     final Optional<UserType> userTypeOptional = userTypeDomainService.findById(userTypeId);
     if (permissionOptional.isEmpty() || userTypeOptional.isEmpty()) {
       throw new UserTypeOrPermissionNotExistException(
-              HttpStatus.BAD_REQUEST,
-              USER_TYPE_OR_PERMISSION_NOT_EXIST_CODE,
-              "error.user.type.or.permission.not.exist");
+          HttpStatus.BAD_REQUEST,
+          USER_TYPE_OR_PERMISSION_NOT_EXIST_CODE,
+          "error.user.type.or.permission.not.exist");
     }
     final Permission permission = permissionOptional.get();
     final UserType userType = userTypeOptional.get();
     final Optional<UserTypePermission> optionalUserTypePermission =
-            userTypePermissionDomainService.findByPermissionIdAndUserTypeId(permission.getId(), userType.getId());
+        userTypePermissionDomainService.findByPermissionIdAndUserTypeId(
+            permission.getId(), userType.getId());
     final UserTypePermission userTypePermission =
-            permissionTransformer.toUserTypePermission(userType, permission);
+        permissionTransformer.toUserTypePermission(userType, permission);
     if (optionalUserTypePermission.isEmpty()) {
       userTypePermissionDomainService.add(userTypePermission);
     }
@@ -95,7 +96,7 @@ public class PermissionImpl extends AuthDetailsProvider implements PermissionSer
   public PermissionResponseDto getPermission() {
     final List<Permission> permission = permissionDomainService.findAll();
     final List<PermissionDto> permissionDtoList =
-            permissionTransformer.permissionListToPermissionDtoList(permission);
+        permissionTransformer.permissionListToPermissionDtoList(permission);
     return PermissionResponseDto.builder().permissionDtoList(permissionDtoList).build();
   }
 }

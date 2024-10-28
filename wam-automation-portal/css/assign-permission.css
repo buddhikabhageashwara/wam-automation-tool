@@ -1,0 +1,51 @@
+.container {
+    margin: 0 auto;
+   /* padding: 20px;*/
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+select, button {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.btn-assign {
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-assign:hover {
+    background-color: #218838;
+}
+
+.alert {
+    display: none;
+    padding: 10px;
+    margin-top: 10px;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+}

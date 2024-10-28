@@ -9,6 +9,7 @@ public final class AppConstant {
   public static final int WAM_AUTOMATION_TOKEN_EXPIRATION = 108000;
   public static final String INTERNAL_ERROR_MSG_KEY = "internal.error.occurred";
   public static final String CORRELATION_ID_LOG_VAR_NAME = "correlationId";
+  public static final String CREATED_MODIFIED_USER_ID = "createdModifiedUserId";
 
   private AppConstant() {
 
