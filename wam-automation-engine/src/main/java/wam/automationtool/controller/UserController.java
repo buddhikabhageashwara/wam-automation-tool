@@ -14,9 +14,10 @@ import wam.automationtool.application.dto.user.UserLoginRequestDto;
 import wam.automationtool.application.dto.user.UserLoginResponseDto;
 import wam.automationtool.application.dto.user.UserResetPasswordRequestDto;
 import wam.automationtool.application.impl.user.UserService;
+import static wam.automationtool.application.config.AppConstant.WAM_AUTOMATION_BASE_PATH;
 
 @RestController
-@RequestMapping("/v1/wam/automation/users")
+@RequestMapping(WAM_AUTOMATION_BASE_PATH + "users")
 @RequiredArgsConstructor
 public final class UserController {
 

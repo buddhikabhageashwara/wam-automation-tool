@@ -11,9 +11,10 @@ import org.springframework.web.bind.annotation.RestController;
 import wam.automationtool.application.dto.user.type.UserTypeAddRequestDto;
 import wam.automationtool.application.dto.user.type.UserTypesResponseDto;
 import wam.automationtool.application.impl.user.type.UserTypeService;
+import static wam.automationtool.application.config.AppConstant.WAM_AUTOMATION_BASE_PATH;
 
 @RestController
-@RequestMapping("/v1/wam/automation/usertypes")
+@RequestMapping(WAM_AUTOMATION_BASE_PATH + "usertypes")
 @RequiredArgsConstructor
 public final class UserTypeController {
 

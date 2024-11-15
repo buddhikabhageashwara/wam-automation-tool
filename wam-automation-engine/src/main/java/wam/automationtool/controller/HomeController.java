@@ -7,9 +7,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import static wam.automationtool.application.config.AppConstant.WAM_AUTOMATION_BASE_PATH;
 
 @RestController
-@RequestMapping("/v1/wam/automation/home/details")
+@RequestMapping(WAM_AUTOMATION_BASE_PATH + "homedetails")
 @RequiredArgsConstructor
 public final class HomeController {
 

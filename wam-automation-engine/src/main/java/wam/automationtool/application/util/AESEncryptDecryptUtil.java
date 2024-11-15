@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-public final class AESEncryptDecryptUtils {
+public final class AESEncryptDecryptUtil {
 
   /**
    * Encrypts a given string using AES encryption algorithm.

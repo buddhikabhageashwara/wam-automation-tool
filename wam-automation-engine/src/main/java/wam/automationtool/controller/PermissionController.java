@@ -9,9 +9,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import wam.automationtool.application.dto.permission.PermissionResponseDto;
 import wam.automationtool.application.impl.permission.PermissionService;
+import static wam.automationtool.application.config.AppConstant.WAM_AUTOMATION_BASE_PATH;
 
 @RestController
-@RequestMapping("/v1/wam/automation/permissions")
+@RequestMapping(WAM_AUTOMATION_BASE_PATH + "permissions")
 @RequiredArgsConstructor
 public final class PermissionController {
 

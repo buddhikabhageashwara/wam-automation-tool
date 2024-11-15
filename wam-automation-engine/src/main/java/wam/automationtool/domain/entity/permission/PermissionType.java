@@ -9,7 +9,7 @@ public enum PermissionType {
           "HOME",
           "Home",
           "home.html",
-          "/v1/wam/automation/home/details/GET",
+          "/v1/wam/automation/homedetails/GET",
           true,
           "Retrieves the home page details"),
   ADD_PERMISSION(

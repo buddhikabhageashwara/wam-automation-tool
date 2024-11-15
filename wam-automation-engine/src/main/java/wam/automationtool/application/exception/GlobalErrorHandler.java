@@ -64,6 +64,216 @@ public final class GlobalErrorHandler extends ResponseEntityExceptionHandler {
     log.error("MethodArgumentNotValidException: {}", exception.getMessage());
     return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
   }
+  
+  @ExceptionHandler({AliasNotFoundException.class})
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  public ResponseEntity<ErrorResponse> handleAliasNotFoundException(
+          final AliasNotFoundException exception) {
+    final String errorMessage = resourceMessages.getErrorMessage(exception.getMsgKey());
+    final ErrorResponse errorResponse =
+            ErrorResponse.builder()
+                    .code(exception.getCode())
+                    .errors(Collections.singletonList(new CustomError(errorMessage)))
+                    .build();
+    log.error("AliasNotFoundException: {}", errorMessage);
+    return new ResponseEntity<>(errorResponse, exception.getStatus());
+  }
+
+  @ExceptionHandler({AliasAlreadyExistException.class})
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  public ResponseEntity<ErrorResponse> handleAliasAlreadyExistException(
+          final AliasAlreadyExistException exception) {
+    final String errorMessage = resourceMessages.getErrorMessage(exception.getMsgKey());
+    final ErrorResponse errorResponse =
+            ErrorResponse.builder()
+                    .code(exception.getCode())
+                    .errors(Collections.singletonList(new CustomError(errorMessage)))
+                    .build();
+    log.error("AliasAlreadyExistException: {}", errorMessage);
+    return new ResponseEntity<>(errorResponse, exception.getStatus());
+  }
+
+  @ExceptionHandler({InvalidAliasTypeException.class})
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  public ResponseEntity<ErrorResponse> handleInvalidAliasTypeException(
+          final InvalidAliasTypeException exception) {
+    final String errorMessage = resourceMessages.getErrorMessage(exception.getMsgKey());
+    final ErrorResponse errorResponse =
+            ErrorResponse.builder()
+                    .code(exception.getCode())
+                    .errors(Collections.singletonList(new CustomError(errorMessage)))
+                    .build();
+    log.error("InvalidAliasTypeException: {}", errorMessage);
+    return new ResponseEntity<>(errorResponse, exception.getStatus());
+  }
+
+  @ExceptionHandler({TestCaseStepNotFoundException.class})
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  public ResponseEntity<ErrorResponse> handleTestCaseStepNotFoundException(
+          final TestCaseStepNotFoundException exception) {
+    final String errorMessage = resourceMessages.getErrorMessage(exception.getMsgKey());
+    final ErrorResponse errorResponse =
+            ErrorResponse.builder()
+                    .code(exception.getCode())
+                    .errors(Collections.singletonList(new CustomError(errorMessage)))
+                    .build();
+    log.error("TestCaseStepNotFoundException: {}", errorMessage);
+    return new ResponseEntity<>(errorResponse, exception.getStatus());
+  }
+
+  @ExceptionHandler({InvalidTestCaseStepTypeException.class})
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  public ResponseEntity<ErrorResponse> handleInvalidTestCaseStepTypeException(
+          final InvalidTestCaseStepTypeException exception) {
+    final String errorMessage = resourceMessages.getErrorMessage(exception.getMsgKey());
+    final ErrorResponse errorResponse =
+            ErrorResponse.builder()
+                    .code(exception.getCode())
+                    .errors(Collections.singletonList(new CustomError(errorMessage)))
+                    .build();
+    log.error("InvalidTestCaseStepTypeException: {}", errorMessage);
+    return new ResponseEntity<>(errorResponse, exception.getStatus());
+  }
+
+  @ExceptionHandler({AliasParameterTypeNotFoundException.class})
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  public ResponseEntity<ErrorResponse> handleAliasParameterTypeNotFoundException(
+          final AliasParameterTypeNotFoundException exception) {
+    final String errorMessage = resourceMessages.getErrorMessage(exception.getMsgKey());
+    final ErrorResponse errorResponse =
+            ErrorResponse.builder()
+                    .code(exception.getCode())
+                    .errors(Collections.singletonList(new CustomError(errorMessage)))
+                    .build();
+    log.error("AliasParameterTypeNotFoundException: {}", errorMessage);
+    return new ResponseEntity<>(errorResponse, exception.getStatus());
+  }
+
+  @ExceptionHandler({AliasParameterTypeAlreadyExistException.class})
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  public ResponseEntity<ErrorResponse> handleAliasParameterTypeAlreadyExistException(
+          final AliasParameterTypeAlreadyExistException exception) {
+    final String errorMessage = resourceMessages.getErrorMessage(exception.getMsgKey());
+    final ErrorResponse errorResponse =
+            ErrorResponse.builder()
+                    .code(exception.getCode())
+                    .errors(Collections.singletonList(new CustomError(errorMessage)))
+                    .build();
+    log.error("AliasParameterTypeAlreadyExistException: {}", errorMessage);
+    return new ResponseEntity<>(errorResponse, exception.getStatus());
+  }
+
+  @ExceptionHandler({AssertParameterTypeNotFoundException.class})
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  public ResponseEntity<ErrorResponse> handleAssertParameterTypeNotFoundException(
+          final AssertParameterTypeNotFoundException exception) {
+    final String errorMessage = resourceMessages.getErrorMessage(exception.getMsgKey());
+    final ErrorResponse errorResponse =
+            ErrorResponse.builder()
+                    .code(exception.getCode())
+                    .errors(Collections.singletonList(new CustomError(errorMessage)))
+                    .build();
+    log.error("AssertParameterTypeNotFoundException: {}", errorMessage);
+    return new ResponseEntity<>(errorResponse, exception.getStatus());
+  }
+
+  @ExceptionHandler({AssertParameterTypeAlreadyExistException.class})
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  public ResponseEntity<ErrorResponse> handleAssertParameterTypeAlreadyExistException(
+          final AssertParameterTypeAlreadyExistException exception) {
+    final String errorMessage = resourceMessages.getErrorMessage(exception.getMsgKey());
+    final ErrorResponse errorResponse =
+            ErrorResponse.builder()
+                    .code(exception.getCode())
+                    .errors(Collections.singletonList(new CustomError(errorMessage)))
+                    .build();
+    log.error("AssertParameterTypeAlreadyExistException: {}", errorMessage);
+    return new ResponseEntity<>(errorResponse, exception.getStatus());
+  }
+
+  @ExceptionHandler({PreferenceParameterTypeNotFoundException.class})
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  public ResponseEntity<ErrorResponse> handlePreferenceParameterTypeNotFoundException(
+          final PreferenceParameterTypeNotFoundException exception) {
+    final String errorMessage = resourceMessages.getErrorMessage(exception.getMsgKey());
+    final ErrorResponse errorResponse =
+            ErrorResponse.builder()
+                    .code(exception.getCode())
+                    .errors(Collections.singletonList(new CustomError(errorMessage)))
+                    .build();
+    log.error("PreferenceParameterTypeNotFoundException: {}", errorMessage);
+    return new ResponseEntity<>(errorResponse, exception.getStatus());
+  }
+
+  @ExceptionHandler({PreferenceParameterTypeAlreadyExistException.class})
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  public ResponseEntity<ErrorResponse> handlePreferenceParameterTypeAlreadyExistException(
+          final PreferenceParameterTypeAlreadyExistException exception) {
+    final String errorMessage = resourceMessages.getErrorMessage(exception.getMsgKey());
+    final ErrorResponse errorResponse =
+            ErrorResponse.builder()
+                    .code(exception.getCode())
+                    .errors(Collections.singletonList(new CustomError(errorMessage)))
+                    .build();
+    log.error("PreferenceParameterTypeAlreadyExistException: {}", errorMessage);
+    return new ResponseEntity<>(errorResponse, exception.getStatus());
+  }
+
+  @ExceptionHandler({TestCaseNotFoundException.class})
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  public ResponseEntity<ErrorResponse> handleTestCaseNotFoundException(
+          final TestCaseNotFoundException exception) {
+    final String errorMessage = resourceMessages.getErrorMessage(exception.getMsgKey());
+    final ErrorResponse errorResponse =
+            ErrorResponse.builder()
+                    .code(exception.getCode())
+                    .errors(Collections.singletonList(new CustomError(errorMessage)))
+                    .build();
+    log.error("TestCaseNotFoundException: {}", errorMessage);
+    return new ResponseEntity<>(errorResponse, exception.getStatus());
+  }
+
+  @ExceptionHandler({TestCaseAlreadyExistException.class})
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  public ResponseEntity<ErrorResponse> handleTestCaseAlreadyExistException(
+          final TestCaseAlreadyExistException exception) {
+    final String errorMessage = resourceMessages.getErrorMessage(exception.getMsgKey());
+    final ErrorResponse errorResponse =
+            ErrorResponse.builder()
+                    .code(exception.getCode())
+                    .errors(Collections.singletonList(new CustomError(errorMessage)))
+                    .build();
+    log.error("TestCaseAlreadyExistException: {}", errorMessage);
+    return new ResponseEntity<>(errorResponse, exception.getStatus());
+  }
+
+  @ExceptionHandler({TestPlanNotFoundException.class})
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  public ResponseEntity<ErrorResponse> handleTestPlanNotFoundException(
+          final TestPlanNotFoundException exception) {
+    final String errorMessage = resourceMessages.getErrorMessage(exception.getMsgKey());
+    final ErrorResponse errorResponse =
+            ErrorResponse.builder()
+                    .code(exception.getCode())
+                    .errors(Collections.singletonList(new CustomError(errorMessage)))
+                    .build();
+    log.error("TestPlanNotFoundException: {}", errorMessage);
+    return new ResponseEntity<>(errorResponse, exception.getStatus());
+  }
+
+  @ExceptionHandler({TestPlanAlreadyExistException.class})
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  public ResponseEntity<ErrorResponse> handleTestPlanAlreadyExistException(
+          final TestPlanAlreadyExistException exception) {
+    final String errorMessage = resourceMessages.getErrorMessage(exception.getMsgKey());
+    final ErrorResponse errorResponse =
+            ErrorResponse.builder()
+                    .code(exception.getCode())
+                    .errors(Collections.singletonList(new CustomError(errorMessage)))
+                    .build();
+    log.error("TestPlanAlreadyExistException: {}", errorMessage);
+    return new ResponseEntity<>(errorResponse, exception.getStatus());
+  }
 
   @ExceptionHandler({UserTypeExistException.class})
   @ResponseStatus(HttpStatus.BAD_REQUEST)

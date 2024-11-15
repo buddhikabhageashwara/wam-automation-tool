@@ -23,7 +23,7 @@ import wam.automationtool.application.exception.InvalidCredentialsException;
 import wam.automationtool.application.exception.PasswordMismatchedException;
 import wam.automationtool.application.exception.UserException;
 import wam.automationtool.application.transform.UserTransformer;
-import wam.automationtool.application.util.AESEncryptDecryptUtils;
+import wam.automationtool.application.util.AESEncryptDecryptUtil;
 import wam.automationtool.application.util.WAMAutomationJWTTokenUtil;
 import wam.automationtool.domain.entity.permission.Permission;
 import wam.automationtool.domain.entity.user.type.UserType;
@@ -66,7 +66,7 @@ public class UserImpl extends AuthDetailsProvider implements UserService {
   @Override
   public UserLoginResponseDto loginUser(final UserLoginRequestDto userLoginRequestDTO) {
     final String encryptedReceivedPassword =
-        AESEncryptDecryptUtils.encrypt(
+        AESEncryptDecryptUtil.encrypt(
             userLoginRequestDTO.getUserPassword(), encryptDecryptSecretKey, saltValue);
     final WAMUser wamUser =
         getWAMUser(userLoginRequestDTO.getUserEmail(), encryptedReceivedPassword);
@@ -148,10 +148,10 @@ public class UserImpl extends AuthDetailsProvider implements UserService {
   @Override
   public void resetPassword(final UserResetPasswordRequestDto userResetPasswordRequestDTO) {
     final String encryptedNewPassword =
-        AESEncryptDecryptUtils.encrypt(
+        AESEncryptDecryptUtil.encrypt(
             userResetPasswordRequestDTO.getNewPassword(), encryptDecryptSecretKey, saltValue);
     final String encryptedCurrentPassword =
-        AESEncryptDecryptUtils.encrypt(
+        AESEncryptDecryptUtil.encrypt(
             userResetPasswordRequestDTO.getCurrentPassword(), encryptDecryptSecretKey, saltValue);
     final boolean isNewAndConfirmPasswordsNotMatched =
         !userResetPasswordRequestDTO
@@ -199,7 +199,7 @@ public class UserImpl extends AuthDetailsProvider implements UserService {
   public void createUser(final UserCreateRequestDto userCreateRequestDTO) {
     final UserType userType = validateUserCreationAndRetrieveUserType(userCreateRequestDTO);
     final String encryptedPassword =
-        AESEncryptDecryptUtils.encrypt(
+        AESEncryptDecryptUtil.encrypt(
             userCreateRequestDTO.getUserPassword(), encryptDecryptSecretKey, saltValue);
     final WAMUser wamUser =
         userTransformer.userCreateRequestDtoToWAMUser(
