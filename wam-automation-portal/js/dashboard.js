@@ -4,7 +4,7 @@ $(document).ready(function () {
     function fetchHomeDetails() {
         const authToken = sessionStorage.getItem("authToken");
         $.ajax({
-            url: wamAutomationEngineBaseURL + "home/details",
+            url: wamAutomationEngineBaseURL + "homedetails",
             type: 'GET',
             headers: {
                 'Authorization': `Bearer ${authToken}`,

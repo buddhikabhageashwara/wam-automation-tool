@@ -11,8 +11,9 @@ import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 import lombok.extern.slf4j.Slf4j;
-import wam.automationtool.application.dto.report.FileDetailsDto;
+import wam.automationtool.application.dto.cache.CacheDataDto;import wam.automationtool.application.dto.report.FileDetailsDto;
 import wam.automationtool.application.dto.report.TestCaseExecutionSummaryDto;
 import wam.automationtool.application.dto.report.TestCaseStepExecutionDto;
 import wam.automationtool.application.dto.report.TestCaseStepExecutionSummaryDto;
@@ -26,7 +27,8 @@ public class ReportGeneratorUtil {
       "https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css";
 
   public static String initiateReportGeneration(
-      final String executionId, final String fileBasePath, final String resourcePath) {
+      final String executionId, final String fileBasePath,
+      final String resourcePath, final WAMCacheManager wamCacheManager) {
     final String timestamp =
         LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss.SSSSSS"));
     final String folderName = "Report-" + timestamp;
@@ -34,108 +36,119 @@ public class ReportGeneratorUtil {
     final String randomNumber = executionId;
     final String fileName = "WAM-TC-Execution-Report-".concat(randomNumber).concat(".html");
     final String filePath = folderPath + File.separator + fileName;
-
     try {
-      // Create the main report directory if it doesn't exist
-      File folder = new File(folderPath);
-      if (!folder.exists() && !folder.mkdirs()) {
-        log.error("Failed to create directory: {}", folderPath);
-        return null;
-      }
+      createFolder(folderPath);
+      createFolder(folderPath + File.separator + "images");
+      createFolder(folderPath + File.separator + "logs");
+      copyResourcesToFolder(resourcePath, folderPath + File.separator + "images");
+      generateHtmlReport(filePath, executionId);
+      final CacheDataDto cacheDataDto = CacheDataDto.builder().build();
+      wamCacheManager.addToCache(executionId, cacheDataDto);
+    } catch (final IOException e) {
+      log.error("An error occurred: {}", e.getMessage());
+      return null;
+    }
+    return filePath;
+  }
 
-      // Create the "images" subfolder within the report folder
-      File imagesFolder = new File(folderPath + File.separator + "images");
-      if (!imagesFolder.exists() && !imagesFolder.mkdirs()) {
-        log.error("Failed to create images directory: {}", imagesFolder.getPath());
-        return null;
-      }
+  private static void createFolder(final String folderPath) throws IOException {
+    final File folder = new File(folderPath);
+    if (!folder.exists() && !folder.mkdirs()) {
+      throw new IOException("Failed to create directory: " + folderPath);
+    }
+  }
 
-      // Create the "logs" subfolder within the report folder
-      File logsFolder = new File(folderPath + File.separator + "logs");
-      if (!logsFolder.exists() && !logsFolder.mkdirs()) {
-        log.error("Failed to create logs directory: {}", logsFolder.getPath());
-        return null;
-      }
-
-      // Copy files from resourcePath to the "images" folder
-      Path sourcePath = Paths.get(resourcePath);
-      Path destinationPath = imagesFolder.toPath();
-
+  private static void copyResourcesToFolder(
+      final String sourcePathStr, final String destinationPathStr) throws IOException {
+    final Path sourcePath = Paths.get(sourcePathStr);
+    final Path destinationPath = Paths.get(destinationPathStr);
+    // Check if the source is a file
+    if (Files.isRegularFile(sourcePath)) {
+      // Ensure the destination directory exists
+      Files.createDirectories(destinationPath);
+      // Copy the file directly to the destination
+      final Path destinationFile = destinationPath.resolve(sourcePath.getFileName());
+      Files.copy(sourcePath, destinationFile, StandardCopyOption.REPLACE_EXISTING);
+      log.info("Copied file: {} to {}", sourcePath, destinationFile);
+    } else if (Files.isDirectory(sourcePath)) {
+      // Walk through the directory and copy files/subdirectories
+      final AtomicReference<Path> destination = new AtomicReference<>();
       Files.walk(sourcePath)
           .forEach(
               source -> {
                 try {
-                  Path destination = destinationPath.resolve(sourcePath.relativize(source));
-                  Files.copy(source, destination, StandardCopyOption.REPLACE_EXISTING);
+                  destination.set(destinationPath.resolve(sourcePath.relativize(source)));
+                  if (Files.isDirectory(source)) {
+                    Files.createDirectories(destination.get());
+                  } else {
+                    // Copy file with binary-safe options
+                    Files.copy(source, destination.get(), StandardCopyOption.REPLACE_EXISTING);
+                  }
                 } catch (IOException e) {
-                  log.error("Failed to copy file: {} to {}", source, destinationPath);
+                  log.error("Failed to copy file: {} to {}", source, destination.get(), e);
                 }
               });
-
-      // Create and write to the report file
-      try (final BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
-        writer.write("<!DOCTYPE html>\n<html lang='en'>\n<head>\n");
-        writer.write(
-            "<meta charset='UTF-8'>\n<meta name='viewport' content='width=device-width, initial-scale=1.0'>\n");
-        writer.write("<link rel='stylesheet' href='" + BOOTSTRAP_CSS + "'>\n");
-
-        // Add CSS for light and dark mode, including jumbotron styling
-        writer.write("<style>\n");
-        writer.write("body.light-mode { background-color: #f8f9fa; color: #212529; }\n");
-        writer.write("body.dark-mode { background-color: #212529; color: #f8f9fa; }\n");
-        writer.write(
-            ".dark-mode button { background-color: #343a40; color: white; border: none; padding: 10px; cursor: pointer; }\n");
-        writer.write(
-            ".light-mode button { background-color: #007bff; color: white; border: none; padding: 10px; cursor: pointer; }\n");
-
-        // Jumbotron styling for both modes
-        writer.write(
-            ".jumbotron { padding: 2rem 1rem; margin-bottom: 2rem; border-radius: 0.3rem; }\n");
-        writer.write(".light-mode .jumbotron { background-color: #e9ecef; color: #212529; }\n");
-        writer.write(".dark-mode .jumbotron { background-color: #343a40; color: #f8f9fa; }\n");
-
-        writer.write("table, th, td { border: 1px solid #ddd; }\n");
-        writer.write("table { width: 100%; border-collapse: collapse; }\n");
-        writer.write("th, td { padding: 8px; text-align: left; }\n");
-        writer.write(".dark-mode table, .dark-mode th, .dark-mode td { color: #f8f9fa; }\n");
-        writer.write(".light-mode table, .light-mode th, .light-mode td { color: #212529; }\n");
-
-        // Right align the toggle button
-        writer.write("#toggleButton { float: right; }\n");
-        writer.write("hr { border: 0; height: 1px; background-color: #6c757d; }\n");
-        writer.write(".dark-mode hr { background-color: #f8f9fa; }\n");
-        writer.write("</style>\n");
-
-        writer.write("<title>WAM Automation Test Case Execution Report</title>\n");
-        writer.write("</head>\n<body class='container-fluid my-4 light-mode'>\n");
-
-        // Add dark mode toggle button
-        writer.write(
-            "<button id='toggleButton' class='btn'>Dark Mode</button>\n <br> <br> <br> \n");
-
-        // Add JavaScript to toggle dark mode
-        writer.write("<script>\n");
-        writer.write(
-            "document.getElementById('toggleButton').addEventListener('click', function() {\n");
-        writer.write("  var body = document.body;\n");
-        writer.write("  if (body.classList.contains('light-mode')) {\n");
-        writer.write("    body.classList.remove('light-mode');\n");
-        writer.write("    body.classList.add('dark-mode');\n");
-        writer.write("  } else {\n");
-        writer.write("    body.classList.remove('dark-mode');\n");
-        writer.write("    body.classList.add('light-mode');\n");
-        writer.write("  }\n");
-        writer.write("});\n");
-        writer.write("</script>\n");
-
-        writer.write(
-            "<h1><img src='images/logo.png' alt='WAM Logo' height='50'> WAM Automation Test Case Execution Report</h1>\n");
-        writer.write("<h3>Execution Id: " + executionId + "</h3><hr>\n");
-      }
-    } catch (final IOException e) {
-      log.error("An error occurred: {}", e.getMessage());
+    } else {
+      log.error("Invalid source path: {}", sourcePath);
+      throw new IOException("Source path is neither a file nor a directory.");
     }
-    return filePath;
+  }
+
+  private static void generateHtmlReport(final String filePath, final String executionId)
+      throws IOException {
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+      writer.write(generateHtmlContent(executionId));
+    }
+  }
+
+  private static String generateHtmlContent(final String executionId) {
+    final StringBuilder html = new StringBuilder();
+    html.append("<!DOCTYPE html>\n<html lang='en'>\n<head>\n")
+        .append(
+            "<meta charset='UTF-8'>\n<meta name='viewport' content='width=device-width, initial-scale=1.0'>\n")
+        .append("<link rel='stylesheet' href='")
+        .append(BOOTSTRAP_CSS)
+        .append("'>\n")
+        .append("<style>\n")
+        .append("body.light-mode { background-color: #f8f9fa; color: #212529; }\n")
+        .append("body.dark-mode { background-color: #212529; color: #f8f9fa; }\n")
+        .append(".dark-mode button { background-color: #343a40; color: white; }\n")
+        .append(".light-mode button { background-color: #007bff; color: white; }\n")
+        .append(".jumbotron { padding: 2rem 1rem; margin-bottom: 2rem; }\n")
+        .append(".light-mode .jumbotron { background-color: #e9ecef; }\n")
+        .append(".dark-mode .jumbotron { background-color: #343a40; }\n")
+        .append(".light-mode .test-case-detail-heading { background-color: #e9ecef; }\n")
+        .append(".dark-mode .test-case-detail-heading { background-color: #343a40; }\n")
+        .append("#toggleButton { float: right; }\n")
+        // Add table-specific styles
+        .append("table { width: 100%; border-collapse: collapse; margin-top: 20px; }\n")
+        .append("th, td { border: 1px solid #dee2e6; padding: 8px; text-align: left; }\n")
+        .append(".light-mode table { background-color: white; color: #212529; }\n")
+        .append(".dark-mode table { background-color: #343a40; color: #f8f9fa; }\n")
+        .append(".dark-mode th { background-color: #495057; color: #f8f9fa; }\n")
+        // Add hover styles for light and dark modes
+        .append(".light-mode tr:hover { background-color: #f1f1f1; color: #212529; }\n")
+        .append(".dark-mode tr:hover { background-color: #495057; color: #f8f9fa; }\n")
+        .append("</style>\n<title>WAM Automation Test Case Execution Report</title>\n")
+        .append("</head>\n<body class='container-fluid my-4 light-mode'>\n")
+        .append("<button id='toggleButton' class='btn'>Dark Mode</button>\n<br><br><br>\n")
+        .append("<script>\n")
+        .append("document.getElementById('toggleButton').addEventListener('click', function() {\n")
+        .append("  var body = document.body;\n")
+        .append("  if (body.classList.contains('light-mode')) {\n")
+        .append("    body.classList.remove('light-mode');\n")
+        .append("    body.classList.add('dark-mode');\n")
+        .append("  } else {\n")
+        .append("    body.classList.remove('dark-mode');\n")
+        .append("    body.classList.add('light-mode');\n")
+        .append("  }\n")
+        .append("});\n</script>\n")
+        .append(
+            "<h1><img src='images/logo.png' alt='WAM Logo' height='50'> WAM Automation Test Case Execution Report</h1>\n")
+        .append("<h3>Execution Id: ")
+        .append(executionId)
+        .append("</h3><hr>\n");
+    return html.toString();
   }
 
   public static void appendTestPlanDetails(final String fileName, final TestPlanDto testPlanDto) {
@@ -158,12 +171,13 @@ public class ReportGeneratorUtil {
   public static void appendTestCaseDetails(final String fileName, final TestCaseDto testCaseDto) {
     try {
       try (final BufferedWriter writer = new BufferedWriter(new FileWriter(fileName, true))) {
-        writer.write("<section>\n<h2>Test Case Details</h2>\n");
-        writer.write("<p><strong>Test Case Id:</strong> " + testCaseDto.getId() + "</p>\n");
+        writer.write("<br>");
+        writer.write(
+            "<section>\n<h2 class='test-case-detail-heading' style='padding:1%;'>[Test Case ID: "
+                + testCaseDto.getId()
+                + "] - ["+ testCaseDto.getTestCaseName() +"]</h2>\n");
         writer.write(
             "<p><strong>Execution Order:</strong> " + testCaseDto.getExecutionOrder() + "</p>\n");
-        writer.write(
-            "<p><strong>Test Case Name:</strong> " + testCaseDto.getTestCaseName() + "</p>\n");
         writer.write(
             "<p><strong>Description:</strong> "
                 + testCaseDto.getDescription()
@@ -178,21 +192,18 @@ public class ReportGeneratorUtil {
     try {
       // Generate a unique identifier by appending the current time (milliseconds) and a random
       // number
-      String uniqueId =
+      final String uniqueId =
           "table_"
               + System.currentTimeMillis()
               + "_"
               + (int) (Math.random() * 1000); // Random number between 0 and 999
-
       try (final BufferedWriter writer = new BufferedWriter(new FileWriter(fileName, true))) {
-        writer.write("<section>\n<h2>Test Case Steps Details</h2>\n");
-
+        writer.write("<section>\n<h5>Test Case Steps Details</h5>\n");
         // Add the search bar with a unique ID
         writer.write(
             "<input class='form-control mb-2' id='searchInput_"
                 + uniqueId
                 + "' type='text' placeholder='Search...'>\n");
-
         // JavaScript for filtering table rows based on search input
         writer.write("<script>\n");
         writer.write(
@@ -206,7 +217,6 @@ public class ReportGeneratorUtil {
         writer.write("row.style.display = match ? '' : 'none';\n");
         writer.write("});\n");
         writer.write("});\n</script>\n");
-
         // Start the table with a unique ID
         writer.write(
             "<div class='table-responsive'>\n<table id='"
@@ -225,7 +235,7 @@ public class ReportGeneratorUtil {
   }
 
   public static void appendTestCaseStepDetails(
-      final String fileName, TestCaseStepExecutionDto testCaseStepExecutionDto) {
+      final String fileName, final TestCaseStepExecutionDto testCaseStepExecutionDto) {
     try {
       try (final BufferedWriter writer = new BufferedWriter(new FileWriter(fileName, true))) {
         writer.write("<tr>\n<td>" + testCaseStepExecutionDto.getStartTime() + "</td>\n");
@@ -254,10 +264,10 @@ public class ReportGeneratorUtil {
   }
 
   public static void appendTestCaseStepExecutionSummary(
-      final String fileName, TestCaseStepExecutionSummaryDto summaryDto) {
+      final String fileName, final TestCaseStepExecutionSummaryDto summaryDto) {
     try {
       try (final BufferedWriter writer = new BufferedWriter(new FileWriter(fileName, true))) {
-        writer.write("<section>\n<h2>Test Case Step Execution Summary</h2>\n");
+        writer.write("<section>\n<h5>Test Case Step Execution Summary</h5>\n");
         writer.write(
             "<p><strong>Total Test Case Steps:</strong> "
                 + summaryDto.getTotalTestCaseSteps()
@@ -300,15 +310,15 @@ public class ReportGeneratorUtil {
       final String fileName, final TestCaseExecutionSummaryDto summaryDto) {
     try {
       try (final BufferedWriter writer = new BufferedWriter(new FileWriter(fileName, true))) {
+        writer.write("<br><br>");
         writer.write("<section class='jumbotron'>\n<h2>Test Case Execution Summary</h2>\n");
         writer.write(
             "<p><strong>Total Test Cases:</strong> " + summaryDto.getTotalTestCases() + "</p>\n");
-        /*  writer.write(
-            "<p><strong>Passed:</strong> " + summaryDto.getPassedTestCaseSteps() + "</p>\n");
+        writer.write("<p><strong>Passed:</strong> " + summaryDto.getPassedTestCases() + "</p>\n");
         writer.write(
             "<p><strong>Failed:</strong> "
-                + summaryDto.getFailedTestCaseSteps()
-                + "</p>\n</section>\n");*/
+                + summaryDto.getFailedTestCases()
+                + "</p>\n</section>\n");
       }
     } catch (final IOException e) {
       log.error("An error occurred: {}", e.getMessage());

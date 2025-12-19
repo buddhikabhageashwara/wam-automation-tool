@@ -5,6 +5,7 @@ import static wam.automationtool.application.config.AppConstant.AuthConstants.US
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -37,6 +38,7 @@ public class PermissionImpl extends AuthDetailsProvider implements PermissionSer
    * already exists, it updates the existing permission; otherwise, it creates a new permission.
    */
   @Override
+  @Transactional
   public void addPermission() {
     Arrays.stream(PermissionType.values())
         .forEach(

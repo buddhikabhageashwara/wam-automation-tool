@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import wam.automationtool.application.dto.execute.TestCaseStepExecuteRequestDto;
 import wam.automationtool.application.dto.execute.TestCaseStepExecuteResponseDto;
-import wam.automationtool.application.impl.testcasestep.execute.TestCaseStepExecutor;
+import wam.automationtool.application.impl.testcasestep.execute.TestCaseStepExecutor;import wam.automationtool.domain.entity.testcasestep.TestCaseStepType;
 
 @Service
 @Slf4j
@@ -13,8 +13,13 @@ import wam.automationtool.application.impl.testcasestep.execute.TestCaseStepExec
 public class OpenAppImpl implements TestCaseStepExecutor {
 
   @Override
+  public TestCaseStepType getTestCaseStepType() {
+    return TestCaseStepType.M_OPEN_APP;
+  }
+
+  @Override
   public TestCaseStepExecuteResponseDto execute(
-      TestCaseStepExecuteRequestDto testCaseStepExecuteRequestDto) {
+      final TestCaseStepExecuteRequestDto testCaseStepExecuteRequestDto) {
     return null;
   }
 }

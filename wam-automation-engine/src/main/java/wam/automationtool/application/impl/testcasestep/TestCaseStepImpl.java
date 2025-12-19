@@ -10,6 +10,7 @@ import static wam.automationtool.application.config.AppConstant.AuthConstants.TE
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.Collectors;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -52,6 +53,7 @@ public class TestCaseStepImpl extends AuthDetailsProvider implements TestCaseSte
   private final AssertParameterDomainService assertParameterDomainService;
 
   @Override
+  @Transactional
   public void addTestCaseStep(final TestCaseStepAddRequestDto testCaseStepAddRequestDto) {
     checkValidityOfTestCaseStepType(testCaseStepAddRequestDto);
     final TestCase testCase =

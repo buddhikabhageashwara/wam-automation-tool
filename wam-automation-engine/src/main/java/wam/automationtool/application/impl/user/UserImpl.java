@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -196,6 +197,7 @@ public class UserImpl extends AuthDetailsProvider implements UserService {
    * @throws UserException if the email already exists or if the user type is invalid.
    */
   @Override
+  @Transactional
   public void createUser(final UserCreateRequestDto userCreateRequestDTO) {
     final UserType userType = validateUserCreationAndRetrieveUserType(userCreateRequestDTO);
     final String encryptedPassword =

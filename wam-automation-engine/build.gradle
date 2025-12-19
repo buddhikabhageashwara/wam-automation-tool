@@ -25,6 +25,12 @@ repositories {
 	mavenCentral()
 }
 
+allprojects {
+	repositories {
+		maven { url 'https://jitpack.io' }
+	}
+}
+
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
@@ -63,7 +69,16 @@ dependencies {
 	implementation 'net.coobird:thumbnailator:0.4.14'
 
 	implementation 'org.springframework.boot:spring-boot-starter-cache'
-	implementation 'org.ehcache:ehcache:3.10.8' // Replace with the latest version
+	implementation 'org.ehcache:ehcache:3.10.8'
+
+// https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-java
+	implementation 'org.seleniumhq.selenium:selenium-java:4.19.0'
+// https://mvnrepository.com/artifact/io.appium/java-client
+	implementation 'io.appium:java-client:9.1.0'
+
+
+	// WebClient support
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
 	//MYSQL connector
 	runtimeOnly(group: 'mysql', name: 'mysql-connector-java', version: '8.0.33')

@@ -7,6 +7,7 @@ import static wam.automationtool.application.config.AppConstant.AuthConstants.TE
 
 import java.util.List;
 import java.util.Optional;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,7 @@ public class TestPlanImpl extends AuthDetailsProvider implements TestPlanService
   private final TestPlanDomainService testPlanDomainService;
 
   @Override
+  @Transactional
   public void addTestPlan(final TestPlanAddRequestDto testPlanAddRequestDto) {
     final boolean isTestPlanExist =
         testPlanDomainService

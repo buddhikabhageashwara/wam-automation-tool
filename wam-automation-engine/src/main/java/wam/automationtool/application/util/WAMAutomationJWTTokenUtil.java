@@ -6,6 +6,7 @@ import static wam.automationtool.application.config.AppConstant.ClaimName.LAST_N
 import static wam.automationtool.application.config.AppConstant.ClaimName.PERMISSION_TYPE_LIST;
 import static wam.automationtool.application.config.AppConstant.ClaimName.USER_EMAIL;
 import static wam.automationtool.application.config.AppConstant.ClaimName.USER_ID;
+import static wam.automationtool.application.config.AppConstant.WAM_AUTOMATION_EXECUTION_TOKEN_EXPIRATION;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -75,6 +76,7 @@ public class WAMAutomationJWTTokenUtil {
             .lastName(String.valueOf(claims.get(LAST_NAME)))
             .userEmail(String.valueOf(claims.get(USER_EMAIL)))
             .userId(String.valueOf(claims.get(USER_ID)))
+            .token(token)
             .build();
     return detailsDto;
   }
@@ -154,5 +156,22 @@ public class WAMAutomationJWTTokenUtil {
             .signWith(SignatureAlgorithm.HS512, secret)
             .compact();
     return JWTTokenDto.builder().token(token).expiration(expiration).build();
+  }
+
+  /**
+   * Generates a new JWT token with a different TTL from a valid token.
+   *
+   * @param token the original JWT token
+   * @return a JWTTokenDto containing the new token and its expiration date
+   * @throws ResponseStatusException if the original token is invalid or expired
+   */
+  public JWTTokenDto regenerateTokenWithNewTTL(final String token) {
+    if (isTokenExpired(token)) {
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "error.auth.access.token.expired");
+    }
+    final Claims claims = getAllClaimsFromToken(token);
+    final String subject = claims.getSubject();
+    return doGenerateToken(
+        new HashMap<>(claims), WAM_AUTOMATION_EXECUTION_TOKEN_EXPIRATION, subject);
   }
 }

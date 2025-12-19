@@ -7,6 +7,7 @@ import static wam.automationtool.application.config.AppConstant.AuthConstants.*;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.Collectors;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -38,6 +39,7 @@ public class AliasImpl extends AuthDetailsProvider implements AliasService {
   private final AliasParameterTransformer aliasParameterTransformer;
 
   @Override
+  @Transactional
   public void addAlias(final AliasAddRequestDto aliasAddRequestDto) {
     checkValidityOfAliasType(aliasAddRequestDto);
     checkAliasExistent(aliasAddRequestDto.getAliasName());

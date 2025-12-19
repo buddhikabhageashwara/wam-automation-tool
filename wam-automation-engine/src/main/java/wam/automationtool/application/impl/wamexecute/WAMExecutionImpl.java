@@ -13,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import wam.automationtool.application.config.TestCaseStepExecutorFactory;
+import wam.automationtool.application.dto.JWTTokenDto;
+import wam.automationtool.application.dto.WAMAutomationUserDetailsDto;
 import wam.automationtool.application.dto.alias.AliasDto;
 import wam.automationtool.application.dto.cache.CacheDataDto;
 import wam.automationtool.application.dto.execute.TestCaseStepExecuteRequestDto;
@@ -32,6 +34,7 @@ import wam.automationtool.application.transform.TestCaseStepTransformer;
 import wam.automationtool.application.transform.TestCaseTransformer;
 import wam.automationtool.application.transform.TestPlanTransformer;
 import wam.automationtool.application.util.ReportGeneratorUtil;
+import wam.automationtool.application.util.WAMAutomationJWTTokenUtil;
 import wam.automationtool.application.util.WAMCacheManager;
 import wam.automationtool.domain.entity.testcase.TestCase;
 import wam.automationtool.domain.entity.testcasestep.TestCaseStep;
@@ -59,6 +62,8 @@ public class WAMExecutionImpl extends AuthDetailsProvider implements WAMExecutio
   private final TestCaseStepTransformer testCaseStepTransformer;
   private final AliasTransformer aliasTransformer;
   private final TestCaseStepExecutorFactory testCaseStepExecutorFactory;
+  private final WAMAutomationJWTTokenUtil wamAutomationJWTTokenUtil;
+  private final WAMCacheManager wamCacheManager;
 
   @Value("${report.base.path}")
   private String reportBasePath;
@@ -69,7 +74,6 @@ public class WAMExecutionImpl extends AuthDetailsProvider implements WAMExecutio
   @Override
   public void executeByTestPlan(final long testPlanId) {
     final String executionId = String.valueOf(UUID.randomUUID());
-    WAMCacheManager.initiateCache();
     final TestPlan testPlan =
         testPlanDomainService
             .findById(testPlanId)
@@ -77,24 +81,27 @@ public class WAMExecutionImpl extends AuthDetailsProvider implements WAMExecutio
                 () ->
                     new TestPlanNotFoundException(
                         NOT_FOUND, TEST_PLAN_NOT_FOUND_CODE, "error.test.plan.not.found"));
+    final WAMAutomationUserDetailsDto userDetails = getWAMAutomationUserDetails();
+    final JWTTokenDto jwtTokenDto =
+            wamAutomationJWTTokenUtil.regenerateTokenWithNewTTL(userDetails.getToken());
     final Thread testCaseExecutionThread =
         new Thread(
             () -> {
               try {
                 final List<TestCase> testCaseList = testCaseDomainService.findByTestPlan(testPlan);
                 final String reportFilePath =
-                    initiateReportGeneration(executionId, testPlan.getId());
+                    initiateReportGeneration(executionId, testPlan.getId(), wamCacheManager);
                 final List<AliasDto> aliasDtoList = getAliasDtoList();
                 testCaseList.stream()
                     .forEach(
                         testCase -> {
                           addTestCaseDetailsToReport(reportFilePath, testCase);
                           reportGenerationAndExecuteTestCaseSteps(
-                              reportFilePath, testCase, aliasDtoList, executionId);
+                              reportFilePath, testCase, aliasDtoList, executionId, jwtTokenDto.getToken());
                         });
-                completeReportGeneration(testPlan.getTestCases().size(), reportFilePath);
+                completeReportGeneration(testCaseList.size(), reportFilePath);
               } finally {
-                WAMCacheManager.removeFromCache(executionId);
+                wamCacheManager.removeFromCache(executionId);
               }
             },
             executionId);
@@ -104,7 +111,6 @@ public class WAMExecutionImpl extends AuthDetailsProvider implements WAMExecutio
   @Override
   public void executeByTestCase(final long testCaseId) {
     final String executionId = String.valueOf(UUID.randomUUID());
-    WAMCacheManager.initiateCache();
     final TestCase testCase =
         testCaseDomainService
             .findById(testCaseId)
@@ -112,19 +118,22 @@ public class WAMExecutionImpl extends AuthDetailsProvider implements WAMExecutio
                 () ->
                     new TestCaseNotFoundException(
                         NOT_FOUND, TEST_CASE_NOT_FOUND_CODE, "error.test.case.not.found"));
+    final WAMAutomationUserDetailsDto userDetails = getWAMAutomationUserDetails();
+    final JWTTokenDto jwtTokenDto =
+            wamAutomationJWTTokenUtil.regenerateTokenWithNewTTL(userDetails.getToken());
     final Thread testCaseExecutionThread =
         new Thread(
             () -> {
               try {
                 final List<AliasDto> aliasDtoList = getAliasDtoList();
                 final String reportFilePath =
-                    initiateReportGeneration(executionId, testCase.getTestPlan().getId());
+                    initiateReportGeneration(executionId, testCase.getTestPlan().getId(), wamCacheManager);
                 addTestCaseDetailsToReport(reportFilePath, testCase);
                 reportGenerationAndExecuteTestCaseSteps(
-                    reportFilePath, testCase, aliasDtoList, executionId);
+                    reportFilePath, testCase, aliasDtoList, executionId, jwtTokenDto.getToken());
                 completeReportGeneration(1, reportFilePath);
               } finally {
-                WAMCacheManager.removeFromCache(executionId);
+                wamCacheManager.removeFromCache(executionId);
               }
             },
             executionId);
@@ -135,7 +144,6 @@ public class WAMExecutionImpl extends AuthDetailsProvider implements WAMExecutio
   public TestCaseStepExecuteResponseDto executeByTestCaseStep(
       final long testCaseStepId,
       final TestCaseStepExecuteRequestDto testCaseStepExecuteRequestDto) {
-    WAMCacheManager.initiateCache();
     final TestCaseStepExecutor testCaseStepExecutor =
         testCaseStepExecutorFactory.getTestCaseStepExecutor(
             TestCaseStepType.valueOf(testCaseStepExecuteRequestDto.getTestCaseStepType()));
@@ -159,7 +167,8 @@ public class WAMExecutionImpl extends AuthDetailsProvider implements WAMExecutio
       final String reportFilePath,
       final TestCase testCase,
       final List<AliasDto> aliasDtoList,
-      final String executionId) {
+      final String executionId,
+      final String token) {
     ReportGeneratorUtil.createTestCaseStepDetailsTable(reportFilePath);
     final List<TestCaseStep> testCaseStepList = testCaseStepDomainService.findByTestCase(testCase);
     final int totalTestCaseSteps = testCaseStepList.size();
@@ -169,7 +178,7 @@ public class WAMExecutionImpl extends AuthDetailsProvider implements WAMExecutio
         .forEach(
             testCaseStep -> {
               executeTestCaseStep(testCaseStep, executionId, aliasDtoList,
-                      passedTestCaseSteps, failedTestCaseSteps, reportFilePath);
+                      passedTestCaseSteps, failedTestCaseSteps, reportFilePath, token);
             });
     completeTestCaseStepReportingDetails(
         reportFilePath, totalTestCaseSteps, passedTestCaseSteps, failedTestCaseSteps, executionId);
@@ -179,7 +188,8 @@ public class WAMExecutionImpl extends AuthDetailsProvider implements WAMExecutio
                                    final List<AliasDto> aliasDtoList,
                                    final AtomicInteger passedTestCaseSteps,
                                    final AtomicInteger failedTestCaseSteps,
-                                   final String reportFilePath) {
+                                   final String reportFilePath,
+                                   final String token) {
     final TestCaseStepExecutor testCaseStepExecutor =
             testCaseStepExecutorFactory.getTestCaseStepExecutor(
                     TestCaseStepType.valueOf(testCaseStep.getTestCaseStepType()));
@@ -187,7 +197,7 @@ public class WAMExecutionImpl extends AuthDetailsProvider implements WAMExecutio
             testCaseStepTransformer.transformTestCaseStepToDto(testCaseStep);
     final TestCaseStepExecuteRequestDto testCaseStepExecuteRequestDto =
             testCaseStepTransformer.toTestCaseStepExecuteRequestDto(
-                    aliasDtoList, testCaseStepDto, executionId);
+                    aliasDtoList, testCaseStepDto, executionId, token);
     final TestCaseStepExecuteResponseDto testCaseStepExecuteResponseDto =
             testCaseStepExecutor.execute(testCaseStepExecuteRequestDto);
     final TestCaseStepExecutionDto testCaseStepExecutionDto =
@@ -227,7 +237,7 @@ public class WAMExecutionImpl extends AuthDetailsProvider implements WAMExecutio
             .build();
     ReportGeneratorUtil.appendTestCaseStepExecutionSummary(
         reportFilePath, testCaseStepExecutionSummaryDto);
-    final CacheDataDto cacheDataDto = WAMCacheManager.getCacheDataDto(executionId);
+    final CacheDataDto cacheDataDto = wamCacheManager.getCacheDataDto(executionId);
     final FileDetailsDto fileDetailsDto =
         Objects.isNull(cacheDataDto)
             ? FileDetailsDto.builder().build()
@@ -235,12 +245,13 @@ public class WAMExecutionImpl extends AuthDetailsProvider implements WAMExecutio
     ReportGeneratorUtil.appendFileDetails(reportFilePath, fileDetailsDto);
   }
 
-  private String initiateReportGeneration(final String executionId, final long testPlanId) {
+  private String initiateReportGeneration(final String executionId, final long testPlanId,
+                                          final WAMCacheManager wamCacheManager) {
     final TestPlan testPlan = testPlanDomainService.findById(testPlanId).get();
     final TestPlanDto testPlanDto = testPlanTransformer.testPlanToTestPlanDto(testPlan);
     final String reportFilePath =
         ReportGeneratorUtil.initiateReportGeneration(
-            executionId, reportBasePath, reportResourcePath);
+            executionId, reportBasePath, reportResourcePath, wamCacheManager);
     ReportGeneratorUtil.appendTestPlanDetails(reportFilePath, testPlanDto);
     return reportFilePath;
   }

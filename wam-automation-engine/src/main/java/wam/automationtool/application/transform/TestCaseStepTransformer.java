@@ -53,9 +53,11 @@ public class TestCaseStepTransformer {
         .testCaseId(
             Objects.nonNull(testCaseStep.getTestCase()) ? testCaseStep.getTestCase().getId() : null)
         .preferenceParameterDtoList(
-            transformPreferenceParametersToDtoList(testCaseStep.getPreferenceParameters()))
+            transformPreferenceParametersToDtoList(
+                testCaseStep.getPreferenceParameters().stream().toList()))
         .assertParameterDtoList(
-            transformAssertParametersToDtoList(testCaseStep.getAssertParameters()))
+            transformAssertParametersToDtoList(
+                testCaseStep.getAssertParameters().stream().toList()))
         .build();
   }
 
@@ -113,30 +115,32 @@ public class TestCaseStepTransformer {
   }
 
   public TestCaseStepExecutionDto testCaseStepExecuteResponseDtoToTestCaseStepExecutionDto(
-          final TestCaseStepExecuteResponseDto testCaseStepExecuteResponseDto,
-          final TestCaseStep testCaseStep) {
+      final TestCaseStepExecuteResponseDto testCaseStepExecuteResponseDto,
+      final TestCaseStep testCaseStep) {
     return TestCaseStepExecutionDto.builder()
-            .startTime(testCaseStepExecuteResponseDto.getStartTime())
-            .endTime(testCaseStepExecuteResponseDto.getEndTime())
-            .id(testCaseStep.getId())
-            .executionOrder(testCaseStep.getExecutionOrder())
-            .testCaseStepType(testCaseStep.getTestCaseStepType())
-            .testCaseStepName(testCaseStep.getTestCaseStepName())
-            .expectedResult(testCaseStepExecuteResponseDto.getExpectedResult())
-            .actualResult(testCaseStepExecuteResponseDto.getActualResult())
-            .status(testCaseStepExecuteResponseDto.getStatus())
-            .build();
+        .startTime(testCaseStepExecuteResponseDto.getStartTime())
+        .endTime(testCaseStepExecuteResponseDto.getEndTime())
+        .id(testCaseStep.getId())
+        .executionOrder(testCaseStep.getExecutionOrder())
+        .testCaseStepType(testCaseStep.getTestCaseStepType())
+        .testCaseStepName(testCaseStep.getTestCaseStepName())
+        .expectedResult(testCaseStepExecuteResponseDto.getExpectedResult())
+        .actualResult(testCaseStepExecuteResponseDto.getActualResult())
+        .status(testCaseStepExecuteResponseDto.getStatus())
+        .build();
   }
 
   public TestCaseStepExecuteRequestDto toTestCaseStepExecuteRequestDto(
       final List<AliasDto> aliasDtoList,
       final TestCaseStepDto testCaseStepDto,
-      final String executionId) {
+      final String executionId,
+      final String token) {
     return TestCaseStepExecuteRequestDto.builder()
-            .executionId(executionId)
-            .aliasDtoList(aliasDtoList)
-            .testCaseStepDto(testCaseStepDto)
-            .testCaseStepType(testCaseStepDto.getTestCaseStepType())
-            .build();
+        .token(token)
+        .executionId(executionId)
+        .aliasDtoList(aliasDtoList)
+        .testCaseStepDto(testCaseStepDto)
+        .testCaseStepType(testCaseStepDto.getTestCaseStepType())
+        .build();
   }
 }

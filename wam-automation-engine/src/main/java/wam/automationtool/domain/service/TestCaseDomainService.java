@@ -64,7 +64,7 @@ public class TestCaseDomainService {
      * @return A List containing the TestCases associated with the specified TestPlan.
      */
     public List<TestCase> findByTestPlan(final TestPlan testPlan) {
-    return testCaseRepository.findByTestPlanAndIsDeletedOrderByExecutionOrder(testPlan, false);
+        return testCaseRepository.findByTestPlanAndIsDeletedOrderByExecutionOrder(testPlan, false);
     }
 
     /**

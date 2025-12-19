@@ -21,7 +21,7 @@ import wam.automationtool.domain.entity.testcase.TestCase;
 import wam.automationtool.domain.entity.testcasestep.parameter.AssertParameter;
 import wam.automationtool.domain.entity.testcasestep.parameter.PreferenceParameter;
 
-import java.util.List;
+import java.util.List;import java.util.Set;
 
 @Getter
 @Setter
@@ -57,9 +57,9 @@ public class TestCaseStep extends BaseEntity {
 
   // One-to-Many relationship with PreferenceParameter
   @OneToMany(mappedBy = "testCaseStep", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<PreferenceParameter> preferenceParameters;
+  private Set<PreferenceParameter> preferenceParameters;
 
   // One-to-Many relationship with AssertParameter
   @OneToMany(mappedBy = "testCaseStep", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<AssertParameter> assertParameters;
+  private Set<AssertParameter> assertParameters;
 }

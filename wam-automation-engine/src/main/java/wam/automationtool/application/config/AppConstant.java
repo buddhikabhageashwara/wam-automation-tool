@@ -7,6 +7,7 @@ public final class AppConstant {
   public static final String UTILITY_CLASS = "UTILITY_CLASS";
   public static final String WAM_AUTOMATION_TOKEN_TTL = "wamAutomationTokenTTL";
   public static final int WAM_AUTOMATION_TOKEN_EXPIRATION = 108000;
+  public static final int WAM_AUTOMATION_EXECUTION_TOKEN_EXPIRATION = 9999999;
   public static final String INTERNAL_ERROR_MSG_KEY = "internal.error.occurred";
   public static final String CORRELATION_ID_LOG_VAR_NAME = "correlationId";
   public static final String CREATED_MODIFIED_USER_ID = "createdModifiedUserId";
@@ -56,6 +57,7 @@ public final class AppConstant {
     public static final String ALIAS_ALREADY_EXIST_CODE = "WAM-520";
     public static final String INVALID_ALIAS_TYPE_CODE = "WAM-521";
     public static final String ALIAS_NOT_FOUND_CODE = "WAM-522";
+    public static final String TEST_CASE_STEP_EXECUTION_FAIL_CODE = "WAM-513";
     public static final String SUCCESS_STATUS = "200";
     public static final String FAILED_STATUS = "500";
     public static final String MESSAGE_OK = "OK";
@@ -66,12 +68,22 @@ public final class AppConstant {
   }
 
   public static final class CustomHeaders {
+    public static final String USER_DETAILS_HEADER = "userDetails";
+    public static final String CORRELATION_ID_HEADER = "X-Correlation-ID";
     private CustomHeaders() {
       throw new IllegalStateException(UTILITY_CLASS);
     }
+  }
 
-    public static final String USER_DETAILS_HEADER = "userDetails";
-    public static final String CORRELATION_ID_HEADER = "X-Correlation-ID";
+  public static final class TestCaseStepTypeConstant {
+    public static final String AGENT_URL = "agentURL";
+    public static final String A_WAIT_TIME = "waitTime";
+    public static final String W_WEB_DRIVER_TYPE = "webDriver";
+    public static final String W_WEB_DRIVER_CACHE_NAME = "webDriverCacheName";
+    public static final String W_BROWSER_LINK = "browserLink";
+    private TestCaseStepTypeConstant() {
+      throw new IllegalStateException(UTILITY_CLASS);
+    }
   }
 }
 

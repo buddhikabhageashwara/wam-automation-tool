@@ -12,6 +12,7 @@ import wam.automationtool.application.dto.testcasestep.TestCaseStepDto;
 @Setter
 public class TestCaseStepExecuteRequestDto {
 
+  private String token;
   private String executionId;
   final TestCaseStepDto testCaseStepDto;
   private List<AliasDto> aliasDtoList;

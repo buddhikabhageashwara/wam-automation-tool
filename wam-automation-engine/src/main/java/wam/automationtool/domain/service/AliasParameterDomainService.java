@@ -3,7 +3,6 @@ package wam.automationtool.domain.service;
 import wam.automationtool.domain.entity.testcasestep.alias.parameter.AliasParameter;
 import wam.automationtool.domain.repository.AliasParameterRepository;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -75,7 +74,7 @@ public class AliasParameterDomainService {
      * @return A list of AliasParameters associated with the given Alias ID.
      */
     public List<AliasParameter> findByAliasId(final Long aliasId) {
-        return aliasParameterRepository.findByAlias_IdAndIsDeleted(aliasId, false);
+        return aliasParameterRepository.findByAliasIdAndIsDeleted(aliasId, false);
     }
 
     /**

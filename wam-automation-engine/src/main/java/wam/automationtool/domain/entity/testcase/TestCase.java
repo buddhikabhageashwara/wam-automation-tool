@@ -46,6 +46,9 @@ public class TestCase extends BaseEntity {
   @Column(name = "description", columnDefinition = "LONGTEXT")
   private String description;
 
+  // TODO: check executionScheduledDate, executionExpiryDate, executionFrequency definitions.
+  //  it seems like currently not using them and these fields can be used to run a test case
+  //  from a specific date to expire date for a defined frequency
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss.SSSSSS")
   @Column(name = "executionScheduledDate")
   private LocalDateTime executionScheduledDate;

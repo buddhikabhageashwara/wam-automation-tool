@@ -6,6 +6,7 @@ import static wam.automationtool.application.config.AppConstant.AuthConstants.AL
 import static wam.automationtool.application.config.AppConstant.AuthConstants.ALIAS_PARAMETER_TYPE_NOT_FOUND_CODE;
 
 import java.util.List;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,7 @@ public class AliasParameterTypeImpl extends AuthDetailsProvider
   private final AliasParameterTypeTransformer aliasParameterTypeTransformer;
 
   @Override
+  @Transactional
   public void addAliasParameterType(
       final AliasParameterTypeAddRequestDto aliasParameterTypeAddRequestDto) {
     boolean isAliasParameterTypeExist =

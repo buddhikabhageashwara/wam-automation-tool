@@ -36,20 +36,14 @@ import wam.automationtool.domain.entity.testcasestep.TestCaseStepType;
 
 @Service
 @Slf4j
-public class OpenBrowserImpl extends TestCaseStepExecutorBase implements TestCaseStepExecutor {
+public class CloseBrowserImpl extends TestCaseStepExecutorBase implements TestCaseStepExecutor {
 
   @Value("${selenium.grid.base.url}")
   private String seleniumGridBaseURL;
 
-  private static final Map<String, WebDriver> activeDrivers = new ConcurrentHashMap<>();
-
-  public static Map<String, WebDriver> getActiveDrivers() {
-    return activeDrivers;
-  }
-
   @Override
   public TestCaseStepType getTestCaseStepType() {
-    return TestCaseStepType.W_OPEN_BROWSER;
+    return TestCaseStepType.W_CLOSE_BROWSER;
   }
 
   @Override
@@ -110,7 +104,7 @@ public class OpenBrowserImpl extends TestCaseStepExecutorBase implements TestCas
     if (Objects.isNull(cacheDataDto)) {
       cacheDataDto = CacheDataDto.builder().build();
     }
-    activeDrivers.put(webDriverCacheName, driver);
+    //activeDrivers.put(webDriverCacheName, driver);
     getWamCacheManager().addToCache(requestDto.getExecutionId(), cacheDataDto);
   }
 

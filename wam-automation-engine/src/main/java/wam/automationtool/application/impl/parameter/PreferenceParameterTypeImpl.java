@@ -6,6 +6,7 @@ import static wam.automationtool.application.config.AppConstant.AuthConstants.PR
 import static wam.automationtool.application.config.AppConstant.AuthConstants.PREFERENCE_PARAMETER_TYPE_NOT_FOUND_CODE;
 
 import java.util.List;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,7 @@ public class PreferenceParameterTypeImpl extends AuthDetailsProvider
   private final PreferenceParameterTypeTransformer preferenceParameterTypeTransformer;
 
   @Override
+  @Transactional
   public void addPreferenceParameterType(
       final PreferenceParameterTypeAddRequestDto preferenceParameterTypeAddRequestDto) {
     boolean isPreferenceParameterTypeExist =

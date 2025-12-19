@@ -11,11 +11,11 @@ import wam.automationtool.domain.entity.testcasestep.TestCaseStepType;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class SendHTTPRequestImpl implements TestCaseStepExecutor {
+public class DestroyCacheImpl implements TestCaseStepExecutor {
 
   @Override
   public TestCaseStepType getTestCaseStepType() {
-    return TestCaseStepType.A_SEND_HTTP_REQUEST;
+    return TestCaseStepType.A_DESTROY_CACHE;
   }
 
   @Override

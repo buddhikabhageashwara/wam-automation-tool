@@ -20,6 +20,7 @@ public class WAMAutomationUserDetailsDto {
   private String lastName;
   private String userEmail;
   private String userId;
+  private String token;
   @JsonProperty("isSuperAdmin")
   private boolean isSuperAdmin;
   private List<String> permissionTypeList;
