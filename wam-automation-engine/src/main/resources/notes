@@ -35,3 +35,9 @@ The log file name and location should be provided as parameter values.
 
 When executing log test cases, we need to store the log file name in Ehcache.
 At the end of the test case execution, retrieve the file names from the cache and send requests to the remote servers to fetch the log files.
+
+
+TODO:
+
+Test Case Execution Summary
+if failed in open browser tcs type , tool is not goign to continue eg: driver missing

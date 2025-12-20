@@ -10,11 +10,15 @@ import org.springframework.stereotype.Service;
 import wam.automationtool.application.dto.execute.ActualAndExpectedResultDto;
 import wam.automationtool.application.dto.execute.TestCaseStepExecuteRequestDto;
 import wam.automationtool.application.dto.execute.TestCaseStepExecuteResponseDto;
+import wam.automationtool.application.exception.TestCaseStepExecutionFailException;
 import wam.automationtool.application.impl.testcasestep.execute.web.OpenBrowserImpl;
 import wam.automationtool.application.util.AgentRequestManager;
 import wam.automationtool.application.util.TestCaseStepActualAndExpectedResultManager;
 import wam.automationtool.application.util.WAMCacheManager;
 import wam.automationtool.domain.entity.testcasestep.TestCaseStepType;
+
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static wam.automationtool.application.config.AppConstant.AuthConstants.TEST_CASE_STEP_EXECUTION_FAIL_CODE;
 
 @Service
 @Slf4j
@@ -85,7 +89,8 @@ public abstract class TestCaseStepExecutorBase {
     final WebDriver existingDriver = OpenBrowserImpl.getActiveDrivers().get(webDriverCacheName);
     if (Objects.isNull(existingDriver)) {
       log.warn("No WebDriver found for the given cache name: {}", webDriverCacheName);
-      return null;
+        throw new TestCaseStepExecutionFailException(
+                BAD_REQUEST, TEST_CASE_STEP_EXECUTION_FAIL_CODE, "driver not found to close");
     } else {
       return existingDriver;
     }

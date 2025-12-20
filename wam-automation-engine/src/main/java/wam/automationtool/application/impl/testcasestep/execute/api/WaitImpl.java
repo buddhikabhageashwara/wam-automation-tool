@@ -49,10 +49,13 @@ public class WaitImpl extends TestCaseStepExecutorBase implements TestCaseStepEx
         return submitToAgent(testCaseStepExecuteRequestDto, agentURL);
       }
       status = TestCaseStepExecutionStatus.PASSED.toString();
-    } catch (final Exception exception) {
-      status = TestCaseStepExecutionStatus.FAILED.toString();
-      isUnknown = true;
-      unknownReason = exception.getMessage();
+    }  catch (final TestCaseStepExecutionFailException exception) {
+        status = TestCaseStepExecutionStatus.FAILED.toString();
+        isUnknown = false;
+    }  catch (final Exception exception) {
+        status = TestCaseStepExecutionStatus.FAILED.toString();
+        isUnknown = true;
+        unknownReason = exception.getMessage();
     } finally {
       endTime = DateTimeManager.getCurrentUTCDateTime();
       actualAndExpectedResult =

@@ -71,7 +71,10 @@ public class OpenBrowserImpl extends TestCaseStepExecutorBase implements TestCas
         return submitToAgent(testCaseStepExecuteRequestDto, agentURL);
       }
       status = TestCaseStepExecutionStatus.PASSED.toString();
-    } catch (final Exception exception) {
+    }  catch (final TestCaseStepExecutionFailException exception) {
+        status = TestCaseStepExecutionStatus.FAILED.toString();
+        isUnknown = false;
+    }  catch (final Exception exception) {
       status = TestCaseStepExecutionStatus.FAILED.toString();
       isUnknown = true;
       unknownReason = exception.getMessage();
@@ -93,6 +96,7 @@ public class OpenBrowserImpl extends TestCaseStepExecutorBase implements TestCas
         extractPreferenceParameters(testCaseStepExecuteRequestDto);
     resultParameters.put(W_BROWSER_LINK, extractedPreferenceParameters.get(W_BROWSER_LINK));
     resultParameters.put(W_WEB_DRIVER_TYPE, extractedPreferenceParameters.get(W_WEB_DRIVER_TYPE));
+    resultParameters.put(W_WEB_DRIVER_CACHE_NAME, extractedPreferenceParameters.get(W_WEB_DRIVER_CACHE_NAME));
     final WebDriver driver = setupWebDriver(extractedPreferenceParameters.get(W_WEB_DRIVER_TYPE));
     updateCache(
         cacheDataDto,

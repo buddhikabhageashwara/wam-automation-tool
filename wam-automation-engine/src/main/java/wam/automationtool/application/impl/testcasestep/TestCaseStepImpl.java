@@ -7,10 +7,11 @@ import static wam.automationtool.application.config.AppConstant.AuthConstants.PR
 import static wam.automationtool.application.config.AppConstant.AuthConstants.TEST_CASE_NOT_FOUND_CODE;
 import static wam.automationtool.application.config.AppConstant.AuthConstants.TEST_CASE_STEP_NOT_FOUND_CODE;
 
+import jakarta.transaction.Transactional;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -67,8 +68,12 @@ public class TestCaseStepImpl extends AuthDetailsProvider implements TestCaseSte
         testCaseStepTransformer.TestCaseStepAddRequestDtoToTestCaseStep(
             testCaseStepAddRequestDto, testCase);
     final TestCaseStep newTestCaseStep = testCaseStepDomainService.add(preparedTestCaseStep);
-    addPreferenceParameters(testCaseStepAddRequestDto, newTestCaseStep);
-    addAssertParameters(testCaseStepAddRequestDto, newTestCaseStep);
+    if (Objects.nonNull(testCaseStepAddRequestDto.getPreferenceParameters())) {
+      addPreferenceParameters(testCaseStepAddRequestDto, newTestCaseStep);
+    }
+    if (Objects.nonNull(testCaseStepAddRequestDto.getAssertParameters())) {
+      addAssertParameters(testCaseStepAddRequestDto, newTestCaseStep);
+    }
   }
 
   private void checkValidityOfTestCaseStepType(

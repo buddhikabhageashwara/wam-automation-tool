@@ -20,45 +20,56 @@ public class TestCaseStepActualAndExpectedResultManager {
     switch (testCaseStepType) {
       case A_SEND_HTTP_REQUEST:
         passActualResultTemplate =
-            "HTTP request successfully sent with URL: {url} and payload: {payload}";
+            "HTTP request was sent successfully to URL: {url} with payload: {payload}.";
         failActualResultTemplate =
-            "HTTP request failed to send with URL: {url} and payload: {payload}";
-        expectedResultTemplate = "Server should respond with status: {statusCode}";
+            "Failed to send the HTTP request to URL: {url} with payload: {payload}.";
+        expectedResultTemplate = "The server should respond with status code: {statusCode}.";
         break;
       case A_LOG_FILE_EXTRACT:
         passActualResultTemplate =
-            "Log file successfully extracted from path: {filePath} with keyword: {keyword}";
+            "Log file was extracted successfully from path: {filePath} using keyword: {keyword}.";
         failActualResultTemplate =
-            "Log file extraction failed for path: {filePath} with keyword: {keyword}";
-        expectedResultTemplate = "Log file should contain entries with keyword: {keyword}";
+            "Failed to extract the log file from path: {filePath} using keyword: {keyword}.";
+        expectedResultTemplate = "The log file should contain entries matching keyword: {keyword}.";
         break;
       case A_REMOVE_EXECUTION_CACHE:
-        passActualResultTemplate = "Execution cache successfully removed for key: {cacheKey}";
-        failActualResultTemplate = "Failed to remove execution cache for key: {cacheKey}";
-        expectedResultTemplate = "Cache for key: {cacheKey} should no longer exist";
+        passActualResultTemplate = "Execution cache was removed successfully for key: {cacheKey}.";
+        failActualResultTemplate = "Failed to remove the execution cache for key: {cacheKey}.";
+        expectedResultTemplate = "The cache entry for key: {cacheKey} should no longer exist.";
         break;
       case A_DESTROY_CACHE:
-        passActualResultTemplate = "Cache successfully destroyed for environment: {environment}";
-        failActualResultTemplate = "Failed to destroy cache for environment: {environment}";
-        expectedResultTemplate = "All caches in environment: {environment} should be cleared";
+        passActualResultTemplate =
+            "Cache was destroyed successfully for environment: {environment}.";
+        failActualResultTemplate = "Failed to destroy the cache for environment: {environment}.";
+        expectedResultTemplate = "All caches in environment: {environment} should be cleared.";
         break;
       case A_WAIT:
-        passActualResultTemplate = "Successfully waited for {waitTime} milliseconds";
-        failActualResultTemplate = "Failed to wait for {waitTime} milliseconds";
-        expectedResultTemplate = "{waitTime} milliseconds should be waited";
+        passActualResultTemplate = "Waited successfully for {waitTime} milliseconds.";
+        failActualResultTemplate = "Failed to wait for {waitTime} milliseconds.";
+        expectedResultTemplate = "The system should wait for {waitTime} milliseconds.";
         break;
       case W_OPEN_BROWSER:
         passActualResultTemplate =
-            "Browser successfully opened at URL: {browserLink}, and the web driver is {webDriver}";
+            "Browser was opened successfully at URL: {browserLink}. Browser type: {webDriver}. The driver was saved under the name: {webDriverCacheName}.";
         failActualResultTemplate =
-            "Failed to open the browser at URL: {browserLink} using {webDriver}";
+            "Failed to open the browser at URL: {browserLink} using {webDriver}. The driver could not be saved under the name: {webDriverCacheName}.";
         expectedResultTemplate =
-            "Browser should open at {browserLink}, and the web driver should be {webDriver}";
+            "The browser should open at {browserLink} using {webDriver}, and the driver should be saved under the name: {webDriverCacheName}.";
+        break;
+      case W_CLOSE_BROWSER:
+        passActualResultTemplate =
+            "Browser was closed successfully. The WebDriver was saved under the name: {webDriverCacheName}.";
+        failActualResultTemplate =
+            "Failed to close the browser, or the WebDriver could not be found under the name: {webDriverCacheName}.";
+        expectedResultTemplate =
+            "The browser should close, and the WebDriver should be saved under the name: {webDriverCacheName}.";
         break;
       case M_OPEN_APP:
-        passActualResultTemplate = "Mobile app successfully launched with package: {packageName}";
-        failActualResultTemplate = "Failed to launch mobile app with package: {packageName}";
-        expectedResultTemplate = "App should open the home screen of package: {packageName}";
+        passActualResultTemplate =
+            "Mobile app was launched successfully with package name: {packageName}.";
+        failActualResultTemplate =
+            "Failed to launch the mobile app with package name: {packageName}.";
+        expectedResultTemplate = "The app should open the home screen for package: {packageName}.";
         break;
       default:
         passActualResultTemplate = "UNKNOWN";
@@ -80,7 +91,7 @@ public class TestCaseStepActualAndExpectedResultManager {
   }
 
   private static String replacePlaceholders(
-          final String template, final LinkedHashMap<String, String> parameters) {
+      final String template, final LinkedHashMap<String, String> parameters) {
     String result = template;
     if (Objects.nonNull(parameters)) {
       for (final Map.Entry<String, String> entry : parameters.entrySet()) {
