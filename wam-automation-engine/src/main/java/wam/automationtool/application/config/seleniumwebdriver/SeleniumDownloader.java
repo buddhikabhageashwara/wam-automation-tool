@@ -1,6 +1,8 @@
 package wam.automationtool.application.config.seleniumwebdriver;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
@@ -9,8 +11,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SeleniumDownloader {
 
-    public static void downloadSeleniumServer(
-            final String seleniumJARName, final String seleniumJARDownloadLink) throws IOException {
+    private SeleniumDownloader() {}
+
+    public static void downloadSeleniumServer(final String seleniumJARName,
+                                              final String seleniumJARDownloadLink) throws IOException {
         final String workingDirectory = System.getProperty("user.dir");
         final File seleniumJar = new File(workingDirectory, seleniumJARName);
         if (seleniumJar.exists()) {

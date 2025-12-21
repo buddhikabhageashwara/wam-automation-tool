@@ -8,6 +8,8 @@ import static wam.automationtool.application.config.AppConstant.TestCaseStepType
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -17,9 +19,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.firefox.FirefoxOptions;
-import org.openqa.selenium.ie.InternetExplorerOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
-import org.openqa.selenium.safari.SafariOptions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import wam.automationtool.application.dto.cache.CacheDataDto;
@@ -38,10 +38,10 @@ import wam.automationtool.domain.entity.testcasestep.TestCaseStepType;
 @Slf4j
 public class OpenBrowserImpl extends TestCaseStepExecutorBase implements TestCaseStepExecutor {
 
+  private static final Map<String, WebDriver> activeDrivers = new ConcurrentHashMap<>();
+
   @Value("${selenium.grid.base.url}")
   private String seleniumGridBaseURL;
-
-  private static final Map<String, WebDriver> activeDrivers = new ConcurrentHashMap<>();
 
   public static Map<String, WebDriver> getActiveDrivers() {
     return activeDrivers;
@@ -71,10 +71,10 @@ public class OpenBrowserImpl extends TestCaseStepExecutorBase implements TestCas
         return submitToAgent(testCaseStepExecuteRequestDto, agentURL);
       }
       status = TestCaseStepExecutionStatus.PASSED.toString();
-    }  catch (final TestCaseStepExecutionFailException exception) {
-        status = TestCaseStepExecutionStatus.FAILED.toString();
-        isUnknown = false;
-    }  catch (final Exception exception) {
+    } catch (final TestCaseStepExecutionFailException exception) {
+      status = TestCaseStepExecutionStatus.FAILED.toString();
+      isUnknown = false;
+    } catch (final Exception exception) {
       status = TestCaseStepExecutionStatus.FAILED.toString();
       isUnknown = true;
       unknownReason = exception.getMessage();
@@ -96,7 +96,8 @@ public class OpenBrowserImpl extends TestCaseStepExecutorBase implements TestCas
         extractPreferenceParameters(testCaseStepExecuteRequestDto);
     resultParameters.put(W_BROWSER_LINK, extractedPreferenceParameters.get(W_BROWSER_LINK));
     resultParameters.put(W_WEB_DRIVER_TYPE, extractedPreferenceParameters.get(W_WEB_DRIVER_TYPE));
-    resultParameters.put(W_WEB_DRIVER_CACHE_NAME, extractedPreferenceParameters.get(W_WEB_DRIVER_CACHE_NAME));
+    resultParameters.put(
+        W_WEB_DRIVER_CACHE_NAME, extractedPreferenceParameters.get(W_WEB_DRIVER_CACHE_NAME));
     final WebDriver driver = setupWebDriver(extractedPreferenceParameters.get(W_WEB_DRIVER_TYPE));
     updateCache(
         cacheDataDto,
@@ -107,10 +108,10 @@ public class OpenBrowserImpl extends TestCaseStepExecutorBase implements TestCas
   }
 
   private void updateCache(
-          CacheDataDto cacheDataDto,
-          final String webDriverCacheName,
-          final WebDriver driver,
-          final TestCaseStepExecuteRequestDto requestDto) {
+      CacheDataDto cacheDataDto,
+      final String webDriverCacheName,
+      final WebDriver driver,
+      final TestCaseStepExecuteRequestDto requestDto) {
     if (Objects.isNull(cacheDataDto)) {
       cacheDataDto = CacheDataDto.builder().build();
     }
@@ -130,7 +131,7 @@ public class OpenBrowserImpl extends TestCaseStepExecutorBase implements TestCas
   public WebDriver setupWebDriver(final String webDriverType) {
     WebDriver driver = null;
     try {
-      final URL gridUrl = new URL(seleniumGridBaseURL + "/wd/hub");
+      final URL gridUrl = new URL(seleniumGridBaseURL);
       log.info("Setting up WebDriver for browser type: {}", webDriverType);
       switch (webDriverType.toLowerCase()) {
         case "chrome":
@@ -142,37 +143,46 @@ public class OpenBrowserImpl extends TestCaseStepExecutorBase implements TestCas
           log.info("Firefox WebDriver setup successful.");
           break;
         case "edge":
-          driver = new RemoteWebDriver(gridUrl, new EdgeOptions());
+          final EdgeOptions edgeOptions = new EdgeOptions();
+          final String edgeBinary = resolveEdgeBinary();
+          if (Objects.nonNull(edgeBinary)) {
+            edgeOptions.setBinary(edgeBinary);
+          }
+          driver = new RemoteWebDriver(gridUrl, edgeOptions);
           log.info("Edge WebDriver setup successful.");
-          break;
-        case "safari":
-          // Assuming the driver setup for Safari in Grid is available
-          driver = new RemoteWebDriver(gridUrl, new SafariOptions());
-          log.info("Safari WebDriver setup successful.");
-          break;
-        case "ie":
-          // Assuming the driver setup for Internet Explorer in Grid is available
-          driver = new RemoteWebDriver(gridUrl, new InternetExplorerOptions());
-          log.info("Internet Explorer WebDriver setup successful.");
           break;
         default:
           log.error("Invalid web driver type specified: {}", webDriverType);
           throw new TestCaseStepExecutionFailException(
-                  BAD_REQUEST, TEST_CASE_STEP_EXECUTION_FAIL_CODE,
-                  "Invalid web driver type specified: " + webDriverType);
+              BAD_REQUEST,
+              TEST_CASE_STEP_EXECUTION_FAIL_CODE,
+              "Invalid web driver type specified: " + webDriverType);
       }
     } catch (final MalformedURLException malformedURLException) {
-      log.error("MalformedURLException occurred while setting up WebDriver: {}", malformedURLException.getMessage());
+      log.error(
+          "MalformedURLException occurred while setting up WebDriver: {}",
+          malformedURLException.getMessage());
       throw new TestCaseStepExecutionFailException(
-              BAD_REQUEST, TEST_CASE_STEP_EXECUTION_FAIL_CODE,
-              "MalformedURLException occurred while setting up WebDriver: {}" +
-                      malformedURLException.getMessage());
+          BAD_REQUEST,
+          TEST_CASE_STEP_EXECUTION_FAIL_CODE,
+          "MalformedURLException occurred while setting up WebDriver: {}"
+              + malformedURLException.getMessage());
     } catch (final Exception exception) {
-      log.error("Exception occurred while setting up WebDriver: {}", exception.getMessage(), exception);
+      log.error(
+          "Exception occurred while setting up WebDriver: {}", exception.getMessage(), exception);
       throw new TestCaseStepExecutionFailException(
-              BAD_REQUEST, TEST_CASE_STEP_EXECUTION_FAIL_CODE,
-              "Exception occurred while setting up WebDriver: {}" + exception.getMessage());
+          BAD_REQUEST,
+          TEST_CASE_STEP_EXECUTION_FAIL_CODE,
+          "Exception occurred while setting up WebDriver: {}" + exception.getMessage());
     }
     return driver;
+  }
+
+  private String resolveEdgeBinary() {
+    final String path1 = "C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe";
+    final String path2 = "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe";
+    if (Files.exists(Paths.get(path1))) return path1;
+    if (Files.exists(Paths.get(path2))) return path2;
+    return null; // let EdgeDriver try default
   }
 }
