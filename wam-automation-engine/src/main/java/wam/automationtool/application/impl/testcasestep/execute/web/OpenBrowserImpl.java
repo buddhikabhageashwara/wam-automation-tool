@@ -2,9 +2,9 @@ package wam.automationtool.application.impl.testcasestep.execute.web;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static wam.automationtool.application.config.AppConstant.AuthConstants.TEST_CASE_STEP_EXECUTION_FAIL_CODE;
-import static wam.automationtool.application.config.AppConstant.TestCaseStepTypeConstant.W_BROWSER_LINK;
-import static wam.automationtool.application.config.AppConstant.TestCaseStepTypeConstant.W_WEB_DRIVER_CACHE_NAME;
-import static wam.automationtool.application.config.AppConstant.TestCaseStepTypeConstant.W_WEB_DRIVER_TYPE;
+import static wam.automationtool.application.config.AppConstant.TestCaseStepPreferenceParameterTypeConstant.TCS_PREFERENCE_PARAMETER_TYPE_BROWSER_LINK;
+import static wam.automationtool.application.config.AppConstant.TestCaseStepPreferenceParameterTypeConstant.TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME;
+import static wam.automationtool.application.config.AppConstant.TestCaseStepPreferenceParameterTypeConstant.TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_TYPE;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -94,17 +94,21 @@ public class OpenBrowserImpl extends TestCaseStepExecutorBase implements TestCas
         getWamCacheManager().getCacheDataDto(testCaseStepExecuteRequestDto.getExecutionId());
     final Map<String, String> extractedPreferenceParameters =
         extractPreferenceParameters(testCaseStepExecuteRequestDto);
-    resultParameters.put(W_BROWSER_LINK, extractedPreferenceParameters.get(W_BROWSER_LINK));
-    resultParameters.put(W_WEB_DRIVER_TYPE, extractedPreferenceParameters.get(W_WEB_DRIVER_TYPE));
+    resultParameters.put(TCS_PREFERENCE_PARAMETER_TYPE_BROWSER_LINK,
+            extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_BROWSER_LINK));
+    resultParameters.put(TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_TYPE,
+            extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_TYPE));
     resultParameters.put(
-        W_WEB_DRIVER_CACHE_NAME, extractedPreferenceParameters.get(W_WEB_DRIVER_CACHE_NAME));
-    final WebDriver driver = setupWebDriver(extractedPreferenceParameters.get(W_WEB_DRIVER_TYPE));
+            TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME,
+            extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME));
+    final WebDriver driver = setupWebDriver(
+            extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_TYPE));
     updateCache(
         cacheDataDto,
-        extractedPreferenceParameters.get(W_WEB_DRIVER_CACHE_NAME),
+        extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME),
         driver,
         testCaseStepExecuteRequestDto);
-    openBrowser(driver, extractedPreferenceParameters.get(W_BROWSER_LINK));
+    openBrowser(driver, extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_BROWSER_LINK));
   }
 
   private void updateCache(

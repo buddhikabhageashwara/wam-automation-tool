@@ -9,13 +9,10 @@ import wam.automationtool.application.dto.alias.AliasDto;
 
 public class AliasManager {
 
-  public static List<String> extractAlias(final String value, final List<AliasDto> aliasDtoList) {
-    List<String> extractedAliasList = new ArrayList<>();
-    final Pattern pattern = Pattern.compile("\\[\\[\\[(.*?)]]]");
-    final Matcher matcher = pattern.matcher(value);
-    while (matcher.find()) {
-      extractedAliasList.add(matcher.group(1));
+    public static AliasDto extractAlias(final String value, final List<AliasDto> aliasDtoList) {
+        return aliasDtoList.stream()
+                .filter(aliasDto -> value.equals(aliasDto.getAliasName()))
+                .findFirst()
+                .orElse(null);
     }
-    return extractedAliasList;
-  }
 }

@@ -75,15 +75,24 @@ public final class AppConstant {
     }
   }
 
-  public static final class TestCaseStepTypeConstant {
-    public static final String AGENT_URL = "agentURL";
-    public static final String A_WAIT_TIME = "waitTime";
-    public static final String W_WEB_DRIVER_TYPE = "webDriver";
-    public static final String W_WEB_DRIVER_CACHE_NAME = "webDriverCacheName";
-    public static final String W_BROWSER_LINK = "browserLink";
-    private TestCaseStepTypeConstant() {
+  public static final class TestCaseStepPreferenceParameterTypeConstant {
+    public static final String TCS_PREFERENCE_PARAMETER_TYPE_AGENT_URL = "agentURL"; // this is common to all tcs
+
+    public static final String TCS_PREFERENCE_PARAMETER_TYPE_WAIT_TIME = "waitTime";
+    public static final String TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_TYPE = "webDriver";
+    public static final String TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME = "webDriverCacheName";
+    public static final String TCS_PREFERENCE_PARAMETER_TYPE_BROWSER_LINK = "browserLink";
+    private TestCaseStepPreferenceParameterTypeConstant() {
       throw new IllegalStateException(UTILITY_CLASS);
     }
   }
+
+    public static final class AliasParameterTypeConstant {
+        public static final String ALIAS_PARAMETER_TYPE_AGENT_URL = "agentURL"; // this is common to all tcs
+
+        private AliasParameterTypeConstant() {
+            throw new IllegalStateException(UTILITY_CLASS);
+        }
+    }
 }
 

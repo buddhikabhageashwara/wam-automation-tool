@@ -1,8 +1,9 @@
 package wam.automationtool.application.util;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static wam.automationtool.application.config.AppConstant.AliasParameterTypeConstant.ALIAS_PARAMETER_TYPE_AGENT_URL;
 import static wam.automationtool.application.config.AppConstant.AuthConstants.TEST_CASE_STEP_EXECUTION_FAIL_CODE;
-import static wam.automationtool.application.config.AppConstant.TestCaseStepTypeConstant.AGENT_URL;
+import static wam.automationtool.application.config.AppConstant.TestCaseStepPreferenceParameterTypeConstant.TCS_PREFERENCE_PARAMETER_TYPE_AGENT_URL;
 
 import java.util.List;
 import java.util.Objects;
@@ -23,12 +24,15 @@ public class AgentRequestManager {
     final List<PreferenceParameterDto> preferenceParameterDtoList =
         testCaseStepExecuteRequestDto.getTestCaseStepDto().getPreferenceParameterDtoList();
     final List<AliasDto> aliasDtoList = testCaseStepExecuteRequestDto.getAliasDtoList();
-    final String parameterValue = getParameterValueByName(preferenceParameterDtoList, AGENT_URL);
-    if (Objects.isNull(parameterValue)) {
+    final String tcsPreferenceParameterValue =
+        getParameterValueByName(
+            preferenceParameterDtoList, TCS_PREFERENCE_PARAMETER_TYPE_AGENT_URL);
+    if (Objects.isNull(tcsPreferenceParameterValue)) {
       return null;
     }
-    final List<String> extractedAliasList = AliasManager.extractAlias(parameterValue, aliasDtoList);
-    return getAliasParameterValue(aliasDtoList, extractedAliasList, AGENT_URL);
+    final AliasDto extractedAlias =
+        AliasManager.extractAlias(tcsPreferenceParameterValue, aliasDtoList);
+    return getAliasParameterValue(extractedAlias, ALIAS_PARAMETER_TYPE_AGENT_URL);
   }
 
   private static String getParameterValueByName(
@@ -41,16 +45,10 @@ public class AgentRequestManager {
   }
 
   private static String getAliasParameterValue(
-      final List<AliasDto> aliasDtoList,
-      final List<String> extractedAliasList,
-      final String targetParameterName) {
-    return aliasDtoList.stream()
-        .filter(aliasDto -> extractedAliasList.contains(aliasDto.getAliasName()))
-        .map(AliasDto::getAliasParameterDtoList)
-        .filter(Objects::nonNull)
-        .flatMap(List::stream)
-        .filter(
-            aliasParameterDto -> targetParameterName.equals(aliasParameterDto.getParameterName()))
+      final AliasDto extractedAlias, final String aliasParameterType) {
+    return extractedAlias.getAliasParameterDtoList().stream()
+        .filter(aliasParameterDto ->
+                aliasParameterType.equals(aliasParameterDto.getParameterName()))
         .map(AliasParameterDto::getParameterValue)
         .findFirst()
         .orElse(null);

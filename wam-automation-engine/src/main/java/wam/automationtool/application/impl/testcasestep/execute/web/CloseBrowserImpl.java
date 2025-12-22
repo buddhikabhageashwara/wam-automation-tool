@@ -2,7 +2,7 @@ package wam.automationtool.application.impl.testcasestep.execute.web;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static wam.automationtool.application.config.AppConstant.AuthConstants.TEST_CASE_STEP_EXECUTION_FAIL_CODE;
-import static wam.automationtool.application.config.AppConstant.TestCaseStepTypeConstant.W_WEB_DRIVER_CACHE_NAME;
+import static wam.automationtool.application.config.AppConstant.TestCaseStepPreferenceParameterTypeConstant.TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -74,10 +74,10 @@ public class CloseBrowserImpl extends TestCaseStepExecutorBase implements TestCa
       final TestCaseStepExecuteRequestDto testCaseStepExecuteRequestDto) {
     final Map<String, String> extractedPreferenceParameters =
         extractPreferenceParameters(testCaseStepExecuteRequestDto);
-    resultParameters.put(W_WEB_DRIVER_CACHE_NAME,
-            extractedPreferenceParameters.get(W_WEB_DRIVER_CACHE_NAME));
+    resultParameters.put(TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME,
+            extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME));
     final WebDriver driver =
-        getActiveWebDriverByName(extractedPreferenceParameters.get(W_WEB_DRIVER_CACHE_NAME));
+        getActiveWebDriverByName(extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME));
     closeBrowser(driver);
   }
 
