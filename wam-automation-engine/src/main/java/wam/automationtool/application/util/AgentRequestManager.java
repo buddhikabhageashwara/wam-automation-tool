@@ -32,7 +32,7 @@ public class AgentRequestManager {
             preferenceParameterDtoList, TCS_PREFERENCE_PARAMETER_TYPE_AGENT_URL);
     if (Objects.isNull(tcsPreferenceParameterValue)) {
       log.debug(
-          "Agent URL preference parameter is null. stepId={}",
+          "Agent URL preference parameter is null. test case step id: {}",
           testCaseStepExecuteRequestDto.getTestCaseStepDto().getId());
       return null;
     }
@@ -40,7 +40,7 @@ public class AgentRequestManager {
         AliasManager.extractAlias(tcsPreferenceParameterValue, aliasDtoList);
     final String agentUrl = getAliasParameterValue(extractedAlias, ALIAS_PARAMETER_TYPE_AGENT_URL);
     log.debug(
-        "Resolved agent URL. stepId={}, agentUrl={}",
+        "Resolved agent URL. test case step id: {}, agentUrl: {}",
         testCaseStepExecuteRequestDto.getTestCaseStepDto().getId(),
         agentUrl);
     return agentUrl;
@@ -67,19 +67,19 @@ public class AgentRequestManager {
 
   public static TestCaseStepExecuteResponseDto submitToAgent(
       final TestCaseStepExecuteRequestDto testCaseStepExecuteRequestDto, String remoteURL) {
-    final String stepId =
+    final String testCaseStepId =
         String.valueOf(testCaseStepExecuteRequestDto.getTestCaseStepDto().getId());
     try {
       if (Objects.isNull(remoteURL) || remoteURL.isBlank()) {
-        log.error("Remote URL is null/blank. stepId={}", stepId);
+        log.error("Remote URL is null/blank. test case step id: {}", testCaseStepId);
         throw new IllegalArgumentException("remoteURL cannot be null/blank");
       }
-      // Ensure final target URL includes /{stepId}
-      final String finalUrl = buildFinalUrl(remoteURL, stepId);
+      // Ensure final target URL includes /{testCaseStepId}
+      final String finalUrl = buildFinalUrl(remoteURL, testCaseStepId);
       final String origin = extractOrigin(finalUrl);
       log.info(
-          "Submitting test case step to agent. stepId={}, url={}, origin={}",
-          stepId,
+          "Submitting test case step to agent. test case step id: {}, url: {}, origin: {}",
+          testCaseStepId,
           finalUrl,
           origin);
       testCaseStepExecuteRequestDto.setAgentRequest(true);
@@ -90,22 +90,25 @@ public class AgentRequestManager {
               .defaultHeader(
                   HttpHeaders.AUTHORIZATION, "Bearer " + testCaseStepExecuteRequestDto.getToken())
               .build();
-      final TestCaseStepExecuteResponseDto response =
+      final TestCaseStepExecuteResponseDto testCaseStepExecuteResponseDto =
           webClient
               .post()
               .bodyValue(testCaseStepExecuteRequestDto)
               .retrieve()
               .bodyToMono(TestCaseStepExecuteResponseDto.class)
-              .doOnSubscribe(s -> log.debug("Agent request started. stepId={}", stepId))
-              .doOnSuccess(r -> log.info("Agent request succeeded. stepId={}", stepId))
+              .doOnSubscribe(s -> log.debug("Agent request started. test case step id: {}",
+                      testCaseStepId))
+              .doOnSuccess(r -> log.info("Agent request succeeded. test case step id: {}",
+                      testCaseStepId))
               .doOnError(
-                  e -> log.error("Agent request failed. stepId={}, url={}", stepId, finalUrl, e))
+                  e -> log.error("Agent request failed. test case step id: {}, url: {}",
+                          testCaseStepId, finalUrl, e))
               .block();
-      return response;
+      return testCaseStepExecuteResponseDto;
     } catch (final WebClientResponseException webClientResponseException) {
       log.error(
-          "Agent responded with error. stepId={}, status={}, responseBody={}",
-          stepId,
+          "Agent responded with error. test case step id: {}, status: {}, responseBody: {}",
+          testCaseStepId,
           webClientResponseException.getStatusCode(),
           webClientResponseException.getResponseBodyAsString(),
           webClientResponseException);
@@ -115,8 +118,8 @@ public class AgentRequestManager {
           webClientResponseException.getResponseBodyAsString());
     } catch (final Exception exception) {
       log.error(
-          "Unexpected error while submitting to agent. stepId={}, remoteURL={}",
-          stepId,
+          "Unexpected error while submitting to agent. test case step id: {}, remoteURL: {}",
+          testCaseStepId,
           remoteURL,
           exception);
       throw new TestCaseStepExecutionFailException(
@@ -146,13 +149,13 @@ public class AgentRequestManager {
     final String host = uri.getHost();
     final int port = uri.getPort();
     if (Objects.isNull(scheme) || Objects.isNull(host)) {
-      log.error("Invalid remoteURL for Origin extraction. remoteURL={}", remoteURL);
+      log.error("Invalid remoteURL for Origin extraction. remoteURL: {}", remoteURL);
       throw new IllegalArgumentException(
           "remoteURL must include a valid host (and optionally scheme). Provided: " + remoteURL);
     }
     final String origin =
         (port == -1) ? (scheme + "://" + host) : (scheme + "://" + host + ":" + port);
-    log.debug("Extracted Origin from remoteURL. remoteURL={}, origin={}", remoteURL, origin);
+    log.debug("Extracted Origin from remoteURL. remoteURL: {}, origin: {}", remoteURL, origin);
     return origin;
   }
 }

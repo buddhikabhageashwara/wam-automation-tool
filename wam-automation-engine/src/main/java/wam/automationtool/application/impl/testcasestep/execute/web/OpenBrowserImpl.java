@@ -22,7 +22,6 @@ import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import wam.automationtool.application.dto.cache.CacheDataDto;
 import wam.automationtool.application.dto.execute.ActualAndExpectedResultDto;
 import wam.automationtool.application.dto.execute.TestCaseStepExecuteRequestDto;
 import wam.automationtool.application.dto.execute.TestCaseStepExecuteResponseDto;
@@ -49,17 +48,17 @@ public class OpenBrowserImpl extends TestCaseStepExecutorBase implements TestCas
 
   public static WebDriver removeActiveDriver(final String webDriverCacheName) {
     if (Objects.isNull(webDriverCacheName)) {
-      log.warn("OpenBrowserImpl.removeActiveDriver -> webDriverCacheName is null/empty");
+      log.warn("webDriverCacheName is null/empty");
       return null;
     }
     final WebDriver isRemoved = activeDrivers.remove(webDriverCacheName);
     if (Objects.nonNull(isRemoved)) {
       log.info(
-          "OpenBrowserImpl.removeActiveDriver -> Removed WebDriver for webDriverCacheName={}",
+          "Removed WebDriver for webDriverCacheName: {}",
           webDriverCacheName);
     } else {
       log.warn(
-          "OpenBrowserImpl.removeActiveDriver -> No WebDriver found for webDriverCacheName={}",
+          "No WebDriver found for webDriverCacheName: {}",
           webDriverCacheName);
     }
     return isRemoved; // return in case caller wants to handle it (but not quit here)
@@ -69,7 +68,7 @@ public class OpenBrowserImpl extends TestCaseStepExecutorBase implements TestCas
     final int size = activeDrivers.size();
     activeDrivers.clear();
     log.info(
-        "OpenBrowserImpl.clearActiveDrivers -> Cleared activeDrivers map. Previous size={}", size);
+        "Cleared activeDrivers map. Previous size: {}", size);
   }
 
   @Override

@@ -10,30 +10,53 @@ This field should be of type `String`, where the log file is converted into **Ba
 
 ## Supported Test Case Step (TCS) Types for Log Handling
 
-The following TCS types should be introduced for log reading and management:
+The following **exact TCS types** should be introduced for log reading and management:
 
-### 1. Start Logging
+### 1. A_LOG_FILE_READING_START
+- **Purpose:** Start log capturing for a test case step.
 - **Inputs:**
-  - Log file path
-  - File name
+    - Log file path
+    - File name
 
 - **File Name Format:**
   ```
   <execution_id>_<tcs_id>_<execution_order_number>_<given_file_name>
   ```
 
-### 2. End Logging
+- When this TCS is triggered, log lines should start writing to a temporary location using the **Apache Tailer library**.
 
-### 3. Log Reading
+---
 
-### 4. Retrieve Log
+### 2. A_LOG_FILE_READING_END
+- **Purpose:** Stop log capturing.
+- When this TCS is triggered:
+    - Log writing is stopped.
+    - The log file is finalized and ready for reading or extraction.
 
-### 5. Delete Log
+---
+
+### 3. A_LOG_FILE_READ
+- **Purpose:** Read the finalized log file.
+- This step should read the log content from the temporary location and prepare it for further processing.
+
+---
+
+### 4. A_LOG_FILE_EXTRACT
+- **Purpose:** Retrieve the log content.
+- The log file should be:
+    - Read from disk
+    - Converted into **Base64 format**
+    - Returned as a `String` in `TestCaseStepExecuteResponseDto` for **report generation**
+
+---
+
+### 5. A_LOG_FILE_DELETE
+- **Purpose:** Delete the generated log file.
 - A flag should be introduced to control deletion behavior:
-  - If the flag is **true**:
-    - The step returns **success**, regardless of whether the log file exists.
-  - If the flag is **false**:
-    - The step **fails** if the log file does not exist when deletion is requested.
+    - If the flag is **true**:
+        - The step returns **success**, regardless of whether the log file exists.
+    - If the flag is **false**:
+        - The step **fails** if the log file does not exist when deletion is requested.
 
 ---
 
@@ -47,36 +70,36 @@ This alias uniquely links all log-related steps within a single execution flow.
 
 ## Log Execution Flow
 
-When performing **log reading**, the following execution sequence must be followed:
+When performing log reading and extraction, the following execution sequence **must** be followed:
 
-1. Trigger **Start Logging**
-2. Trigger **End Logging**
-3. Trigger **Log Reading**
+1. Trigger **A_LOG_FILE_READING_START**
+2. Trigger **A_LOG_FILE_READING_END**
+3. Trigger **A_LOG_FILE_READ**
+4. Trigger **A_LOG_FILE_EXTRACT**
+5. Optionally trigger **A_LOG_FILE_DELETE**
 
 ---
 
 ## Log Writing Mechanism
 
-- When the **Start Logging** TCS is triggered:
-  - Log lines are written to a **temporary location** using the **Apache Tailer library**.
-- Log writing continues until the **End Logging** TCS is triggered.
-- Once **End Logging** is executed:
-  - Log writing stops, and the log file is finalized.
+- Log writing starts when **A_LOG_FILE_READING_START** is triggered.
+- Log lines are written to a **temporary location** using the **Apache Tailer library**.
+- Log writing continues until **A_LOG_FILE_READING_END** is triggered.
+- After the end step:
+    - The log file is finalized.
+    - No further log entries are written.
 
 ---
 
-## Log Retrieval and Cleanup
+## Log Retention and Cleanup
 
-- After logging is completed, the user may:
-  1. Trigger **Retrieve Log**
-  2. Optionally trigger **Delete Log**
-
-- If the **Delete Log** step is not triggered:
-  - The log file will **remain permanently** in the specified location.
+- If **A_LOG_FILE_DELETE** is not triggered:
+    - The log file will **remain permanently** in the specified location.
+- Log file cleanup is the responsibility of the **test case author**.
 
 ---
 
-## Retention Responsibility (Optional)
+## Notes
 
-Log file cleanup is the responsibility of the test case author.  
-If the delete step is omitted, log files will not be automatically removed.
+- Log extraction (`A_LOG_FILE_EXTRACT`) should only be executed **after** log reading has completed.
+- The alias parameter must remain consistent across all log-related TCS types to ensure proper linkage.
