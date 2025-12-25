@@ -47,6 +47,31 @@ public class OpenBrowserImpl extends TestCaseStepExecutorBase implements TestCas
     return activeDrivers;
   }
 
+  public static WebDriver removeActiveDriver(final String webDriverCacheName) {
+    if (Objects.isNull(webDriverCacheName)) {
+      log.warn("OpenBrowserImpl.removeActiveDriver -> webDriverCacheName is null/empty");
+      return null;
+    }
+    final WebDriver isRemoved = activeDrivers.remove(webDriverCacheName);
+    if (Objects.nonNull(isRemoved)) {
+      log.info(
+          "OpenBrowserImpl.removeActiveDriver -> Removed WebDriver for webDriverCacheName={}",
+          webDriverCacheName);
+    } else {
+      log.warn(
+          "OpenBrowserImpl.removeActiveDriver -> No WebDriver found for webDriverCacheName={}",
+          webDriverCacheName);
+    }
+    return isRemoved; // return in case caller wants to handle it (but not quit here)
+  }
+
+  public static void clearActiveDrivers() {
+    final int size = activeDrivers.size();
+    activeDrivers.clear();
+    log.info(
+        "OpenBrowserImpl.clearActiveDrivers -> Cleared activeDrivers map. Previous size={}", size);
+  }
+
   @Override
   public TestCaseStepType getTestCaseStepType() {
     return TestCaseStepType.W_OPEN_BROWSER;
@@ -90,37 +115,37 @@ public class OpenBrowserImpl extends TestCaseStepExecutorBase implements TestCas
   private void start(
       final LinkedHashMap<String, String> resultParameters,
       final TestCaseStepExecuteRequestDto testCaseStepExecuteRequestDto) {
-    final CacheDataDto cacheDataDto =
-        getWamCacheManager().getCacheDataDto(testCaseStepExecuteRequestDto.getExecutionId());
     final Map<String, String> extractedPreferenceParameters =
         extractPreferenceParameters(testCaseStepExecuteRequestDto);
-    resultParameters.put(TCS_PREFERENCE_PARAMETER_TYPE_BROWSER_LINK,
-            extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_BROWSER_LINK));
-    resultParameters.put(TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_TYPE,
-            extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_TYPE));
+      getAndValidateTCSPreferenceParameterTypeExistence(
+              extractedPreferenceParameters, TCS_PREFERENCE_PARAMETER_TYPE_BROWSER_LINK);
+      getAndValidateTCSPreferenceParameterTypeExistence(
+              extractedPreferenceParameters, TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_TYPE);
+      getAndValidateTCSPreferenceParameterTypeExistence(
+              extractedPreferenceParameters, TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME);
     resultParameters.put(
-            TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME,
-            extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME));
-    final WebDriver driver = setupWebDriver(
+        TCS_PREFERENCE_PARAMETER_TYPE_BROWSER_LINK,
+        extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_BROWSER_LINK));
+    resultParameters.put(
+        TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_TYPE,
+        extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_TYPE));
+    resultParameters.put(
+        TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME,
+        extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME));
+    final WebDriver driver =
+        setupWebDriver(
             extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_TYPE));
     updateCache(
-        cacheDataDto,
         extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME),
-        driver,
-        testCaseStepExecuteRequestDto);
-    openBrowser(driver, extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_BROWSER_LINK));
+        driver);
+    openBrowser(
+        driver, extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_BROWSER_LINK));
   }
 
   private void updateCache(
-      CacheDataDto cacheDataDto,
       final String webDriverCacheName,
-      final WebDriver driver,
-      final TestCaseStepExecuteRequestDto requestDto) {
-    if (Objects.isNull(cacheDataDto)) {
-      cacheDataDto = CacheDataDto.builder().build();
-    }
+      final WebDriver driver) {
     activeDrivers.put(webDriverCacheName, driver);
-    getWamCacheManager().addToCache(requestDto.getExecutionId(), cacheDataDto);
   }
 
   private void openBrowser(final WebDriver driver, final String browserLink) {

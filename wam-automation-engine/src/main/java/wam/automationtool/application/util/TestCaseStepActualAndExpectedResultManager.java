@@ -32,16 +32,31 @@ public class TestCaseStepActualAndExpectedResultManager {
             "Failed to extract the log file from path: {filePath} using keyword: {keyword}.";
         expectedResultTemplate = "The log file should contain entries matching keyword: {keyword}.";
         break;
-      case A_REMOVE_EXECUTION_CACHE:
-        passActualResultTemplate = "Execution cache was removed successfully for key: {cacheKey}.";
-        failActualResultTemplate = "Failed to remove the execution cache for key: {cacheKey}.";
-        expectedResultTemplate = "The cache entry for key: {cacheKey} should no longer exist.";
+      case A_REMOVE_ALL_EXECUTION_CACHE:
+        passActualResultTemplate = "All execution caches were removed successfully.";
+        failActualResultTemplate = "Failed to remove all execution caches.";
+        expectedResultTemplate = "All the execution caches should not longer exist.";
         break;
-      case A_DESTROY_CACHE:
+      case A_REMOVE_EXECUTION_CACHE:
+        passActualResultTemplate = "Execution cache was removed successfully for execution id: {executionId}.";
+        failActualResultTemplate = "Failed to remove the execution cache for execution id: {executionId}.";
+        expectedResultTemplate = "The cache entry for execution id: {executionId} should no longer exist.";
+        break;
+      case A_ADD_CACHE_ITEM:
         passActualResultTemplate =
-            "Cache was destroyed successfully for environment: {environment}.";
-        failActualResultTemplate = "Failed to destroy the cache for environment: {environment}.";
-        expectedResultTemplate = "All caches in environment: {environment} should be cleared.";
+            "Cache item was added successfully for key: {stringCacheMapKey}, along with its corresponding value: {stringCacheMapValue}.";
+        failActualResultTemplate =
+            "Failed to add the cache item for key: {stringCacheMapKey}, along with its corresponding value: {stringCacheMapValue}.";
+        expectedResultTemplate =
+            "The cache item for key: {stringCacheMapKey} should be added, along with its corresponding value: {stringCacheMapValue}.";
+        break;
+      case A_REMOVE_CACHE_ITEM:
+        passActualResultTemplate =
+            "Cache item was removed successfully for key: {stringCacheMap}, along with its corresponding value.";
+        failActualResultTemplate =
+            "Failed to remove the cache item for key: {stringCacheMap}, along with its corresponding value.";
+        expectedResultTemplate =
+            "The cache item for key: {stringCacheMap} should be removed, along with its corresponding value.";
         break;
       case A_WAIT:
         passActualResultTemplate = "Waited successfully for {waitTime} milliseconds.";

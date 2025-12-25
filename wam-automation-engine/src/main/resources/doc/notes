@@ -1,43 +1,11 @@
-LOG READING In Remote Servers
-
-when we need to read a log in a remote server first need to notyf the remote server's
-tool start the loging using log readin gstat tcs . once request reciev to remote server tool
-it should start the log file writing throgh apache tailer
-after that if recevive the verfication tcs to remote should read the create log and should give the
-result to main tool
-ther should have a sperate endpoint to recieve tcs execute request thta is should not
-crete reports
-
-also when triggering log file adding in reporting utill method should call
-to all remote servers to get log files withn them . for that also ahoudl have a soerate endoint .
-
-
-log file name , location shuld mention in parm values
-
-when executing log tcs we need to put the file name to ehcache
-end of the test case execytion get file names from cache and send request to servers
-to retrieve log files
-
-
-Log Reading in Remote Servers
-
-When we need to read logs from a remote server, we must first notify the remote server tool to start logging using log-reading test cases (TCS).
-
-Once the request is received by the remote server tool, it should start writing logs using Apache Tailer.
-
-After that, when the verification test cases are received, the remote server should read the created log file and send the result back to the main tool.
-
-There should be a separate endpoint to receive log test case execution requests. This endpoint should not create reports.
-
-When triggering log file collection in the reporting utility method, it should call all remote servers to retrieve their log files. For this purpose, there should also be a separate endpoint.
-
-The log file name and location should be provided as parameter values.
-
-When executing log test cases, we need to store the log file name in Ehcache.
-At the end of the test case execution, retrieve the file names from the cache and send requests to the remote servers to fetch the log files.
-
-
 TODO:
 
 Test Case Execution Summary
 if failed in open browser tcs type , tool is not goign to continue eg: driver missing
+
+Result inverse feature
+
+
+have a check on preference param existence type by type while adding and executing both , come up with a good design for that
+
+

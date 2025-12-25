@@ -1,16 +1,11 @@
-package wam.automationtool.application.impl.testcasestep.execute.web;
+package wam.automationtool.application.impl.testcasestep.execute.api;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static wam.automationtool.application.config.AppConstant.AuthConstants.TEST_CASE_STEP_EXECUTION_FAIL_CODE;
-import static wam.automationtool.application.config.AppConstant.TestCaseStepPreferenceParameterTypeConstant.TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME;
-import static wam.automationtool.application.impl.testcasestep.execute.web.OpenBrowserImpl.removeActiveDriver;
 
 import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Objects;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.openqa.selenium.WebDriver;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import wam.automationtool.application.dto.execute.ActualAndExpectedResultDto;
 import wam.automationtool.application.dto.execute.TestCaseStepExecuteRequestDto;
@@ -25,14 +20,13 @@ import wam.automationtool.domain.entity.testcasestep.TestCaseStepType;
 
 @Service
 @Slf4j
-public class CloseBrowserImpl extends TestCaseStepExecutorBase implements TestCaseStepExecutor {
-
-  @Value("${selenium.grid.base.url}")
-  private String seleniumGridBaseURL;
+@RequiredArgsConstructor
+public class RemoveAllExecutionCacheImpl extends TestCaseStepExecutorBase
+    implements TestCaseStepExecutor {
 
   @Override
   public TestCaseStepType getTestCaseStepType() {
-    return TestCaseStepType.W_CLOSE_BROWSER;
+    return TestCaseStepType.A_REMOVE_ALL_EXECUTION_CACHE;
   }
 
   @Override
@@ -73,24 +67,11 @@ public class CloseBrowserImpl extends TestCaseStepExecutorBase implements TestCa
   private void start(
       final LinkedHashMap<String, String> resultParameters,
       final TestCaseStepExecuteRequestDto testCaseStepExecuteRequestDto) {
-    final Map<String, String> extractedPreferenceParameters =
-        extractPreferenceParameters(testCaseStepExecuteRequestDto);
-    getAndValidateTCSPreferenceParameterTypeExistence(
-          extractedPreferenceParameters, TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME);
-    final String webDriverCacheName =
-        extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME);
-    resultParameters.put(TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME, webDriverCacheName);
-    final WebDriver driver = getActiveWebDriverByName(webDriverCacheName);
-    closeBrowser(driver, webDriverCacheName);
-  }
-
-  private void closeBrowser(final WebDriver driver, final String webDriverCacheName) {
-    if (Objects.nonNull(driver)) {
-      driver.quit();
-      removeActiveDriver(webDriverCacheName);
-    } else {
+    try {
+      getWamCacheManager().clearAllCacheItems();
+    } catch (final Exception exception) {
       throw new TestCaseStepExecutionFailException(
-          BAD_REQUEST, TEST_CASE_STEP_EXECUTION_FAIL_CODE, "driver not found to close");
+          BAD_REQUEST, TEST_CASE_STEP_EXECUTION_FAIL_CODE, "Failed to clear all execution caches");
     }
   }
 }

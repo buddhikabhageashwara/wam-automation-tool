@@ -1,5 +1,8 @@
 package wam.automationtool.application.impl.testcasestep.execute;
 
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static wam.automationtool.application.config.AppConstant.AuthConstants.TEST_CASE_STEP_EXECUTION_FAIL_CODE;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -7,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.WebDriver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import wam.automationtool.application.dto.cache.CacheDataDto;
 import wam.automationtool.application.dto.execute.ActualAndExpectedResultDto;
 import wam.automationtool.application.dto.execute.TestCaseStepExecuteRequestDto;
 import wam.automationtool.application.dto.execute.TestCaseStepExecuteResponseDto;
@@ -17,15 +21,11 @@ import wam.automationtool.application.util.TestCaseStepActualAndExpectedResultMa
 import wam.automationtool.application.util.WAMCacheManager;
 import wam.automationtool.domain.entity.testcasestep.TestCaseStepType;
 
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static wam.automationtool.application.config.AppConstant.AuthConstants.TEST_CASE_STEP_EXECUTION_FAIL_CODE;
-
 @Service
 @Slf4j
 public abstract class TestCaseStepExecutorBase {
 
-  @Autowired
-  private WAMCacheManager wamCacheManager;
+  @Autowired private WAMCacheManager wamCacheManager;
 
   protected WAMCacheManager getWamCacheManager() {
     return wamCacheManager;
@@ -40,10 +40,10 @@ public abstract class TestCaseStepExecutorBase {
   }
 
   protected TestCaseStepExecuteResponseDto buildResponse(
-      String status,
-      ActualAndExpectedResultDto actualAndExpectedResult,
-      String startTime,
-      String endTime) {
+      final String status,
+      final ActualAndExpectedResultDto actualAndExpectedResult,
+      final String startTime,
+      final String endTime) {
     // Builds and returns the response DTO
     return TestCaseStepExecuteResponseDto.builder()
         .status(status)
@@ -55,11 +55,11 @@ public abstract class TestCaseStepExecutorBase {
   }
 
   protected ActualAndExpectedResultDto getActualAndExpectedResult(
-      LinkedHashMap<String, String> resultParameters,
-      TestCaseStepExecuteRequestDto testCaseStepExecuteRequestDto,
-      boolean isUnknown,
-      String status,
-      String unknownReason) {
+      final LinkedHashMap<String, String> resultParameters,
+      final TestCaseStepExecuteRequestDto testCaseStepExecuteRequestDto,
+      final boolean isUnknown,
+      final String status,
+      final String unknownReason) {
     // Retrieves the actual and expected result based on the parameters
     return TestCaseStepActualAndExpectedResultManager.getActualAndExpectedResult(
         resultParameters,
@@ -76,12 +76,36 @@ public abstract class TestCaseStepExecutorBase {
   }
 
   protected Map<String, String> extractPreferenceParameters(
-          final TestCaseStepExecuteRequestDto requestDto) {
+      final TestCaseStepExecuteRequestDto testCaseStepExecuteRequestDto) {
+    if (Objects.isNull(testCaseStepExecuteRequestDto)
+        || Objects.isNull(testCaseStepExecuteRequestDto.getTestCaseStepDto())
+        || Objects.isNull(
+            testCaseStepExecuteRequestDto.getTestCaseStepDto().getPreferenceParameterDtoList())
+        || testCaseStepExecuteRequestDto
+            .getTestCaseStepDto()
+            .getPreferenceParameterDtoList()
+            .isEmpty()) {
+      throw new TestCaseStepExecutionFailException(
+          BAD_REQUEST,
+          TEST_CASE_STEP_EXECUTION_FAIL_CODE,
+          "TCS preference parameters were not found.");
+    }
     final Map<String, String> parameters = new LinkedHashMap<>();
-    requestDto.getTestCaseStepDto().getPreferenceParameterDtoList()
-            .forEach(preference -> {
-              parameters.put(preference.getParameterName(), preference.getParameterValue());
+    testCaseStepExecuteRequestDto
+        .getTestCaseStepDto()
+        .getPreferenceParameterDtoList()
+        .forEach(
+            preference -> {
+              if (Objects.nonNull(preference) && Objects.nonNull(preference.getParameterName())) {
+                parameters.put(preference.getParameterName(), preference.getParameterValue());
+              }
             });
+    if (parameters.isEmpty()) {
+      throw new TestCaseStepExecutionFailException(
+          BAD_REQUEST,
+          TEST_CASE_STEP_EXECUTION_FAIL_CODE,
+          "TCS preference parameters were not found.");
+    }
     return parameters;
   }
 
@@ -89,10 +113,84 @@ public abstract class TestCaseStepExecutorBase {
     final WebDriver existingDriver = OpenBrowserImpl.getActiveDrivers().get(webDriverCacheName);
     if (Objects.isNull(existingDriver)) {
       log.warn("No WebDriver found for the given cache name: {}", webDriverCacheName);
-        throw new TestCaseStepExecutionFailException(
-                BAD_REQUEST, TEST_CASE_STEP_EXECUTION_FAIL_CODE, "driver not found to close");
+      throw new TestCaseStepExecutionFailException(
+          BAD_REQUEST, TEST_CASE_STEP_EXECUTION_FAIL_CODE, "driver not found to close");
     } else {
       return existingDriver;
     }
   }
+
+  /**
+   * Retrieves and validates the given TCS preference parameter value from the extracted preference
+   * map.
+   *
+   * <p>Precondition: {@code extractedPreferenceParameters} is already validated as non-null by the
+   * caller.
+   *
+   * <p>Throws {@link TestCaseStepExecutionFailException} if the preference parameter value is
+   * missing or blank.
+   *
+   * @param extractedPreferenceParameters extracted preference parameters map (non-null)
+   * @param tcsPreferenceParameterType preference parameter key to retrieve (e.g., "stringCacheMap")
+   * @return the non-blank preference parameter value
+   */
+  protected String getAndValidateTCSPreferenceParameterTypeExistence(
+      final Map<String, String> extractedPreferenceParameters,
+      final String tcsPreferenceParameterType) {
+    log.debug(
+        "Validating TCS preference parameter existence | preferenceKey={}",
+        tcsPreferenceParameterType);
+    final String tcsPreferenceParameterTypeValue =
+        extractedPreferenceParameters.get(tcsPreferenceParameterType);
+    if (Objects.isNull(tcsPreferenceParameterTypeValue)
+        || tcsPreferenceParameterTypeValue.trim().isEmpty()) {
+      log.error(
+          "TCS preference parameter is missing or blank | preferenceKey={}",
+          tcsPreferenceParameterType);
+      throw new TestCaseStepExecutionFailException(
+          BAD_REQUEST,
+          TEST_CASE_STEP_EXECUTION_FAIL_CODE,
+          "TCS preference parameter " + tcsPreferenceParameterType + " is not found.");
+    }
+    log.debug(
+        "TCS preference parameter validated successfully | preferenceKey={} | value={}",
+        tcsPreferenceParameterType,
+        tcsPreferenceParameterTypeValue);
+    return tcsPreferenceParameterTypeValue;
+  }
+
+  /**
+   * Retrieves and validates {@link CacheDataDto} from cache for the given execution id.
+   *
+   * <p>Throws {@link TestCaseStepExecutionFailException} if cache data is missing.
+   *
+   * @param executionId execution id used as the cache key
+   * @return {@link CacheDataDto} found in cache
+   */
+  protected CacheDataDto getAndValidateCacheDataDto(final String executionId) {
+    final CacheDataDto cacheDataDto = getWamCacheManager().getCacheDataDto(executionId);
+    if (Objects.isNull(cacheDataDto)) {
+      throw new TestCaseStepExecutionFailException(
+          BAD_REQUEST,
+          TEST_CASE_STEP_EXECUTION_FAIL_CODE,
+          "Cache data is not found for executionId: " + executionId);
+    }
+    return cacheDataDto;
+  }
+
+    /**
+     * Retrieves and validates {@link CacheDataDto} from cache for the given execution id.
+     *
+     * <p>Throws {@link TestCaseStepExecutionFailException} if cache data is missing.
+     *
+     * @param executionId execution id used as the cache key
+     * @return {@link CacheDataDto} found in cache
+     */
+    protected CacheDataDto getCacheDataDto(final String executionId) {
+        CacheDataDto cacheDataDto = getWamCacheManager().getCacheDataDto(executionId);
+        if (Objects.isNull(cacheDataDto)) {
+            cacheDataDto = CacheDataDto.builder().build();
+        }
+        return cacheDataDto;
+    }
 }

@@ -21,12 +21,13 @@ public class WAMCacheManager {
   }
 
   public void addToCache(final String key, final CacheDataDto cacheDataDto) {
-    if (Objects.nonNull(wamCache)) {
+      // Retrieve the item before adding it to avoid overwriting the existing cache entry.
+      if (Objects.nonNull(wamCache)) {
       wamCache.put(key, cacheDataDto);
     }
   }
 
-  public void removeFromCache(final String key) {
+  public void removeItemFromCache(final String key) {
     // This needs to be called once after the execution is completed.
     // Also, this request should be sent to remote agents as well.
     if (Objects.nonNull(wamCache)) {
@@ -34,7 +35,7 @@ public class WAMCacheManager {
     }
   }
 
-  public void destroyCache() {
+  public void clearAllCacheItems() {
     if (Objects.nonNull(wamCache)) {
       wamCache.clear();
     }

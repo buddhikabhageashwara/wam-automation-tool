@@ -101,7 +101,7 @@ public class WAMExecutionImpl extends AuthDetailsProvider implements WAMExecutio
                         });
                 completeReportGeneration(testCaseList.size(), reportFilePath);
               } finally {
-                wamCacheManager.removeFromCache(executionId);
+                wamCacheManager.removeItemFromCache(executionId);
               }
             },
             executionId);
@@ -133,7 +133,7 @@ public class WAMExecutionImpl extends AuthDetailsProvider implements WAMExecutio
                     reportFilePath, testCase, aliasDtoList, executionId, jwtTokenDto.getToken());
                 completeReportGeneration(1, reportFilePath);
               } finally {
-                wamCacheManager.removeFromCache(executionId);
+                wamCacheManager.removeItemFromCache(executionId);
               }
             },
             executionId);

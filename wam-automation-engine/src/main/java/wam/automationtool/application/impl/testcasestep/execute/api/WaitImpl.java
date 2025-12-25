@@ -78,6 +78,8 @@ public class WaitImpl extends TestCaseStepExecutorBase implements TestCaseStepEx
       final TestCaseStepExecuteRequestDto testCaseStepExecuteRequestDto) {
     final Map<String, String> extractedPreferenceParameters =
         extractPreferenceParameters(testCaseStepExecuteRequestDto);
+      getAndValidateTCSPreferenceParameterTypeExistence(
+              extractedPreferenceParameters, TCS_PREFERENCE_PARAMETER_TYPE_WAIT_TIME);
     return extractedPreferenceParameters.getOrDefault(TCS_PREFERENCE_PARAMETER_TYPE_WAIT_TIME, "0");
   }
 

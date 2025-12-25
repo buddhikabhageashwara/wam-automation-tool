@@ -301,8 +301,8 @@ public class ReportGeneratorUtil {
         }
         writer.write("</tbody>\n</table>\n</section><hr>\n");
       }
-    } catch (final IOException e) {
-      log.error("An error occurred: {}", e.getMessage());
+    } catch (final IOException ioException) {
+      log.error("An error occurred: {}", ioException.getMessage());
     }
   }
 

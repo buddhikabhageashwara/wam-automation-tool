@@ -14,9 +14,7 @@ public final class AppConstant {
   public static final String WAM_AUTOMATION_BASE_PATH = "/v1/wam/automation/";
   public static final String WAM_CACHE_MANAGER = "WAMCache";
 
-  private AppConstant() {
-
-  }
+  private AppConstant() {}
 
   public static final class ClaimName {
     public static final String USER_EMAIL = "userEmail";
@@ -31,6 +29,7 @@ public final class AppConstant {
       throw new IllegalStateException(UTILITY_CLASS);
     }
   }
+
   public static final class AuthConstants {
 
     public static final String SUCCESS_CODE = "S-200";
@@ -61,38 +60,55 @@ public final class AppConstant {
     public static final String SUCCESS_STATUS = "200";
     public static final String FAILED_STATUS = "500";
     public static final String MESSAGE_OK = "OK";
+
     private AuthConstants() {
       throw new IllegalStateException(UTILITY_CLASS);
     }
-
   }
 
   public static final class CustomHeaders {
     public static final String USER_DETAILS_HEADER = "userDetails";
     public static final String CORRELATION_ID_HEADER = "X-Correlation-ID";
+
     private CustomHeaders() {
       throw new IllegalStateException(UTILITY_CLASS);
     }
   }
 
   public static final class TestCaseStepPreferenceParameterTypeConstant {
-    public static final String TCS_PREFERENCE_PARAMETER_TYPE_AGENT_URL = "agentURL"; // this is common to all tcs
+    public static final String TCS_PREFERENCE_PARAMETER_TYPE_AGENT_URL =
+        "agentURL"; // this is common to all tcs
 
     public static final String TCS_PREFERENCE_PARAMETER_TYPE_WAIT_TIME = "waitTime";
     public static final String TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_TYPE = "webDriver";
-    public static final String TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME = "webDriverCacheName";
+    public static final String TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME =
+        "webDriverCacheName";
     public static final String TCS_PREFERENCE_PARAMETER_TYPE_BROWSER_LINK = "browserLink";
+    public static final String TCS_PREFERENCE_PARAMETER_TYPE_STRING_CACHE_MAP = "stringCacheMap";
+    public static final String TCS_PREFERENCE_PARAMETER_TYPE_STRING_CACHE_MAP_KEY =
+        "stringCacheMapKey";
+    public static final String TCS_PREFERENCE_PARAMETER_TYPE_STRING_CACHE_MAP_VALUE =
+        "stringCacheMapValue";
+
     private TestCaseStepPreferenceParameterTypeConstant() {
       throw new IllegalStateException(UTILITY_CLASS);
     }
   }
 
-    public static final class AliasParameterTypeConstant {
-        public static final String ALIAS_PARAMETER_TYPE_AGENT_URL = "agentURL"; // this is common to all tcs
+  public static final class TestCaseStepActualAndExpectedResult {
+    public static final String TCS_RESULT_EXECUTION_ID = "executionId";
 
-        private AliasParameterTypeConstant() {
-            throw new IllegalStateException(UTILITY_CLASS);
-        }
+    private TestCaseStepActualAndExpectedResult() {
+      throw new IllegalStateException(UTILITY_CLASS);
     }
-}
+  }
 
+  public static final class AliasParameterTypeConstant {
+    public static final String ALIAS_PARAMETER_TYPE_AGENT_URL =
+        "agentURL"; // this is common to all tcs
+
+    private AliasParameterTypeConstant() {
+      throw new IllegalStateException(UTILITY_CLASS);
+    }
+  }
+}
