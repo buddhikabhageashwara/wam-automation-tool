@@ -14,5 +14,7 @@ public class CacheDataDto implements Serializable {
 
   private FileDetailsDto fileDetailsDto;
 
+  private String reportLogsFolderPath;
+
   private Map<String, String> stringCacheMap;
 }

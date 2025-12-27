@@ -42,10 +42,12 @@ public class ReportGeneratorUtil {
       createFolder(folderPath + File.separator + "logs");
       copyResourcesToFolder(resourcePath, folderPath + File.separator + "images");
       generateHtmlReport(filePath, executionId);
-      final CacheDataDto cacheDataDto = CacheDataDto.builder().build();
+      final CacheDataDto cacheDataDto = CacheDataDto.builder()
+              .reportLogsFolderPath(folderPath + File.separator + "logs")
+              .build();
       wamCacheManager.addToCache(executionId, cacheDataDto);
-    } catch (final IOException e) {
-      log.error("An error occurred: {}", e.getMessage());
+    } catch (final IOException ioException) {
+      log.error("An error occurred: {}", ioException.getMessage());
       return null;
     }
     return filePath;
@@ -248,8 +250,8 @@ public class ReportGeneratorUtil {
         writer.write("<td>" + testCaseStepExecutionDto.getActualResult() + "</td>\n");
         writer.write("<td>" + testCaseStepExecutionDto.getStatus() + "</td>\n</tr>\n");
       }
-    } catch (final IOException e) {
-      log.error("An error occurred: {}", e.getMessage());
+    } catch (final IOException ioException) {
+      log.error("An error occurred: {}", ioException.getMessage());
     }
   }
 
@@ -264,49 +266,92 @@ public class ReportGeneratorUtil {
   }
 
   public static void appendTestCaseStepExecutionSummary(
-      final String fileName, final TestCaseStepExecutionSummaryDto summaryDto) {
+      final String fileName, final TestCaseStepExecutionSummaryDto testCaseStepExecutionSummaryDto) {
     try {
       try (final BufferedWriter writer = new BufferedWriter(new FileWriter(fileName, true))) {
         writer.write("<section>\n<h5>Test Case Step Execution Summary</h5>\n");
         writer.write(
             "<p><strong>Total Test Case Steps:</strong> "
-                + summaryDto.getTotalTestCaseSteps()
+                + testCaseStepExecutionSummaryDto.getTotalTestCaseSteps()
                 + "</p>\n");
         writer.write(
-            "<p><strong>Passed:</strong> " + summaryDto.getPassedTestCaseSteps() + "</p>\n");
+            "<p><strong>Passed:</strong> " + testCaseStepExecutionSummaryDto.getPassedTestCaseSteps() + "</p>\n");
         writer.write(
             "<p><strong>Failed:</strong> "
-                + summaryDto.getFailedTestCaseSteps()
+                + testCaseStepExecutionSummaryDto.getFailedTestCaseSteps()
                 + "</p>\n</section>\n");
-      }
-    } catch (final IOException e) {
-      log.error("An error occurred: {}", e.getMessage());
-    }
-  }
-
-  public static void appendFileDetails(final String fileName, final FileDetailsDto fileDetailsDto) {
-    try {
-      if (Objects.isNull(fileDetailsDto)
-          || Objects.isNull(fileDetailsDto.getFileNameList())
-          || fileDetailsDto.getFileNameList().isEmpty()) {
-        log.error("FileDetailsDto or its fileNameList is null. Unable to append file details.");
-        return;
-      }
-      try (final BufferedWriter writer = new BufferedWriter(new FileWriter(fileName, true))) {
-        writer.write("<section>\n<h2>Log Files</h2>\n");
-        writer.write(
-            "<table class='table table-bordered'>\n<thead><tr><th>File</th></tr></thead>\n<tbody>\n");
-        for (String file : fileDetailsDto.getFileNameList()) {
-          writer.write("<tr><td>" + file + "</td></tr>\n");
-        }
-        writer.write("</tbody>\n</table>\n</section><hr>\n");
       }
     } catch (final IOException ioException) {
       log.error("An error occurred: {}", ioException.getMessage());
     }
   }
 
-  public static void appendTestCaseExecutionSummary(
+    public static void appendFileDetails(final String reportHtmlFilePath, final FileDetailsDto fileDetailsDto) {
+        try {
+            if (Objects.isNull(fileDetailsDto)
+                    || Objects.isNull(fileDetailsDto.getFileNameList())
+                    || fileDetailsDto.getFileNameList().isEmpty()) {
+                log.error("fileDetailsDto or fileNameList is null/empty: unable to append file details");
+                return;
+            }
+            final Path reportPath = Paths.get(reportHtmlFilePath).toAbsolutePath().normalize();
+            final Path reportDir = reportPath.getParent(); // .../Report-xxxx/
+            if (Objects.isNull(reportDir)) {
+                log.error("report directory not found: reportHtmlFilePath: {}", reportHtmlFilePath);
+                return;
+            }
+            try (final BufferedWriter writer = new BufferedWriter(new FileWriter(reportHtmlFilePath, true))) {
+                writer.write("<section>\n<h2>Log Files</h2>\n");
+                writer.write(
+                        "<table class='table table-bordered'>\n<thead><tr><th>File</th></tr></thead>\n<tbody>\n");
+
+                for (final String logFilePathStr : fileDetailsDto.getFileNameList()) {
+                    if (Objects.isNull(logFilePathStr) || logFilePathStr.isBlank()) {
+                        continue;
+                    }
+                    final Path logPath = Paths.get(logFilePathStr).toAbsolutePath().normalize();
+                    // Build a relative path so the report remains portable when the whole folder is moved
+                    String href;
+                    try {
+                        final Path rel = reportDir.relativize(logPath);
+                        href = rel.toString().replace("\\", "/"); // URLs must use /
+                    } catch (final Exception ex) {
+                        // fallback: if relativize fails, at least use file name under logs/
+                        final String fileNameOnly = logPath.getFileName().toString();
+                        href = "logs/" + fileNameOnly;
+                    }
+                    // Display label you requested: "logs\FILE_NAME"
+                    final String displayName = "logs\\" + logPath.getFileName();
+                    // Basic HTML escaping for display text (avoid breaking HTML)
+                    final String safeDisplay = escapeHtml(displayName);
+                    writer.write("<tr><td>");
+                    writer.write("<a href=\"" + href + "\" target=\"_blank\" rel=\"noopener noreferrer\">");
+                    writer.write(safeDisplay);
+                    writer.write("</a>");
+                    writer.write("</td></tr>\n");
+                }
+                writer.write("</tbody>\n</table>\n</section><hr>\n");
+            }
+        } catch (final IOException ioException) {
+            log.error("append file details failed: reason: {}", ioException.getMessage());
+        } catch (final Exception exception) {
+            log.error("append file details failed: reason: {}", exception.getMessage());
+        }
+    }
+
+    private static String escapeHtml(final String input) {
+        if (input == null) {
+            return "";
+        }
+        return input
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
+    }
+
+    public static void appendTestCaseExecutionSummary(
       final String fileName, final TestCaseExecutionSummaryDto summaryDto) {
     try {
       try (final BufferedWriter writer = new BufferedWriter(new FileWriter(fileName, true))) {

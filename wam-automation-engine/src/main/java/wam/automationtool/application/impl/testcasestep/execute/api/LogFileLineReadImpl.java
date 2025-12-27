@@ -21,12 +21,11 @@ import wam.automationtool.domain.entity.testcasestep.TestCaseStepType;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class RemoveAllExecutionCacheImpl extends TestCaseStepExecutorBase
-    implements TestCaseStepExecutor {
+public class LogFileLineReadImpl extends TestCaseStepExecutorBase implements TestCaseStepExecutor {
 
   @Override
   public TestCaseStepType getTestCaseStepType() {
-    return TestCaseStepType.A_REMOVE_ALL_EXECUTION_CACHE;
+    return TestCaseStepType.A_LOG_FILE_LINE_READ;
   }
 
   @Override

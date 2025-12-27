@@ -22,7 +22,6 @@ import wam.automationtool.application.dto.alias.AliasParameterDto;
 import wam.automationtool.application.dto.execute.ActualAndExpectedResultDto;
 import wam.automationtool.application.dto.execute.TestCaseStepExecuteRequestDto;
 import wam.automationtool.application.dto.execute.TestCaseStepExecuteResponseDto;
-import wam.automationtool.application.dto.testcasestep.LogFileBase64Dto;
 import wam.automationtool.application.exception.TestCaseStepExecutionFailException;
 import wam.automationtool.application.impl.testcasestep.execute.TestCaseStepExecutor;
 import wam.automationtool.application.impl.testcasestep.execute.TestCaseStepExecutorBase;
@@ -36,17 +35,16 @@ import wam.automationtool.domain.entity.testcasestep.TestCaseStepType;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class LogFileExtractImpl extends TestCaseStepExecutorBase implements TestCaseStepExecutor {
+public class LogFileReadingEndImpl extends TestCaseStepExecutorBase implements TestCaseStepExecutor {
 
-  @Override
-  public TestCaseStepType getTestCaseStepType() {
-    return TestCaseStepType.A_LOG_FILE_EXTRACT;
-  }
+    @Override
+    public TestCaseStepType getTestCaseStepType() {
+        return TestCaseStepType.A_LOG_FILE_READING_END;
+    }
 
     @Override
     public TestCaseStepExecuteResponseDto execute(
             final TestCaseStepExecuteRequestDto testCaseStepExecuteRequestDto) {
-        LogFileBase64Dto logFileBase64Dto = null;
         String startTime = DateTimeManager.getCurrentUTCDateTime();
         String status = TestCaseStepExecutionStatus.FAILED.toString();
         String endTime = null;
@@ -58,7 +56,7 @@ public class LogFileExtractImpl extends TestCaseStepExecutorBase implements Test
             startTime = DateTimeManager.getCurrentUTCDateTime();
             final String agentURL = AgentRequestManager.getAgentURL(testCaseStepExecuteRequestDto);
             if (isNotRemoteExecution(testCaseStepExecuteRequestDto, agentURL)) {
-                logFileBase64Dto = start(resultParameters, testCaseStepExecuteRequestDto);
+                start(resultParameters, testCaseStepExecuteRequestDto);
             } else {
                 return submitToAgent(testCaseStepExecuteRequestDto, agentURL);
             }
@@ -76,13 +74,12 @@ public class LogFileExtractImpl extends TestCaseStepExecutorBase implements Test
                     getActualAndExpectedResult(
                             resultParameters, testCaseStepExecuteRequestDto, isUnknown, status, unknownReason);
         }
-        return buildResponse(status, actualAndExpectedResult, startTime, endTime, logFileBase64Dto);
+        return buildResponse(status, actualAndExpectedResult, startTime, endTime, null);
     }
 
-    private LogFileBase64Dto start(
+    private void start(
             final LinkedHashMap<String, String> resultParameters,
             final TestCaseStepExecuteRequestDto testCaseStepExecuteRequestDto) {
-        LogFileBase64Dto logFileBase64Dto = null;
         try {
             final Map<String, String> extractedPreferenceParameters =
                     extractPreferenceParameters(testCaseStepExecuteRequestDto);
@@ -114,14 +111,12 @@ public class LogFileExtractImpl extends TestCaseStepExecutorBase implements Test
                         testCaseStepExecuteRequestDto.getExecutionId() + "_" +
                         testCaseStepExecuteRequestDto.getTestCaseStepDto().getTestCaseId() + "_" +
                         extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_LOG_FILE);
-                logFileBase64Dto =
-                        LogTailerUtil.getTempFileAsBase64(tempLogFileName);
+                LogTailerUtil.stopReading(tempLogFileName);
                 resultParameters.put(TCS_RESULT_TEMP_LOG_FILE_NAME, tempLogFileName);
             }
         } catch (final Exception exception) {
             throw new TestCaseStepExecutionFailException(
                     BAD_REQUEST, TEST_CASE_STEP_EXECUTION_FAIL_CODE, "Failed to end log reading");
         }
-        return logFileBase64Dto;
     }
 }

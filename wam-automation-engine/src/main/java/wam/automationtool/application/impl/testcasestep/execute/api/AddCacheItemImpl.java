@@ -1,6 +1,8 @@
 package wam.automationtool.application.impl.testcasestep.execute.api;
 
 import static wam.automationtool.application.config.AppConstant.TestCaseStepPreferenceParameterTypeConstant.*;
+import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_STRING_CACHE_MAP_KEY;
+import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_STRING_CACHE_MAP_VALUE;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -63,7 +65,7 @@ public class AddCacheItemImpl extends TestCaseStepExecutorBase implements TestCa
           getActualAndExpectedResult(
               resultParameters, testCaseStepExecuteRequestDto, isUnknown, status, unknownReason);
     }
-    return buildResponse(status, actualAndExpectedResult, startTime, endTime);
+    return buildResponse(status, actualAndExpectedResult, startTime, endTime, null);
   }
 
   private void start(
@@ -122,10 +124,10 @@ public class AddCacheItemImpl extends TestCaseStepExecutorBase implements TestCa
       final LinkedHashMap<String, String> resultParameters,
       final Map<String, String> extractedPreferenceParameters) {
     resultParameters.put(
-        TCS_PREFERENCE_PARAMETER_TYPE_STRING_CACHE_MAP_KEY,
+            TCS_RESULT_STRING_CACHE_MAP_KEY,
         extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_STRING_CACHE_MAP_KEY));
     resultParameters.put(
-        TCS_PREFERENCE_PARAMETER_TYPE_STRING_CACHE_MAP_VALUE,
+            TCS_RESULT_STRING_CACHE_MAP_VALUE,
         extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_STRING_CACHE_MAP_VALUE));
   }
 

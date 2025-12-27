@@ -14,6 +14,7 @@ import wam.automationtool.application.dto.cache.CacheDataDto;
 import wam.automationtool.application.dto.execute.ActualAndExpectedResultDto;
 import wam.automationtool.application.dto.execute.TestCaseStepExecuteRequestDto;
 import wam.automationtool.application.dto.execute.TestCaseStepExecuteResponseDto;
+import wam.automationtool.application.dto.testcasestep.LogFileBase64Dto;
 import wam.automationtool.application.exception.TestCaseStepExecutionFailException;
 import wam.automationtool.application.impl.testcasestep.execute.web.OpenBrowserImpl;
 import wam.automationtool.application.util.AgentRequestManager;
@@ -43,7 +44,8 @@ public abstract class TestCaseStepExecutorBase {
       final String status,
       final ActualAndExpectedResultDto actualAndExpectedResult,
       final String startTime,
-      final String endTime) {
+      final String endTime,
+      final LogFileBase64Dto logFileBase64Dto) {
     // Builds and returns the response DTO
     return TestCaseStepExecuteResponseDto.builder()
         .status(status)
@@ -51,6 +53,7 @@ public abstract class TestCaseStepExecutorBase {
         .actualResult(actualAndExpectedResult.getActualResult())
         .startTime(startTime)
         .endTime(endTime)
+        .logFileBase64Dto(logFileBase64Dto)
         .build();
   }
 
@@ -138,14 +141,14 @@ public abstract class TestCaseStepExecutorBase {
       final Map<String, String> extractedPreferenceParameters,
       final String tcsPreferenceParameterType) {
     log.debug(
-        "Validating TCS preference parameter existence | preferenceKey={}",
+        "Validating TCS preference parameter existence | preferenceKey: {}",
         tcsPreferenceParameterType);
     final String tcsPreferenceParameterTypeValue =
         extractedPreferenceParameters.get(tcsPreferenceParameterType);
     if (Objects.isNull(tcsPreferenceParameterTypeValue)
         || tcsPreferenceParameterTypeValue.trim().isEmpty()) {
       log.error(
-          "TCS preference parameter is missing or blank | preferenceKey={}",
+          "TCS preference parameter is missing or blank | preferenceKey; {}",
           tcsPreferenceParameterType);
       throw new TestCaseStepExecutionFailException(
           BAD_REQUEST,
@@ -153,7 +156,7 @@ public abstract class TestCaseStepExecutorBase {
           "TCS preference parameter " + tcsPreferenceParameterType + " is not found.");
     }
     log.debug(
-        "TCS preference parameter validated successfully | preferenceKey={} | value={}",
+        "TCS preference parameter validated successfully | preferenceKey: {} | value; {}",
         tcsPreferenceParameterType,
         tcsPreferenceParameterTypeValue);
     return tcsPreferenceParameterTypeValue;

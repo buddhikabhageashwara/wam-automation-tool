@@ -2,7 +2,7 @@ package wam.automationtool.application.impl.testcasestep.execute.api;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static wam.automationtool.application.config.AppConstant.AuthConstants.TEST_CASE_STEP_EXECUTION_FAIL_CODE;
-import static wam.automationtool.application.config.AppConstant.TestCaseStepActualAndExpectedResult.TCS_RESULT_EXECUTION_ID;
+import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_EXECUTION_ID;
 
 import java.util.LinkedHashMap;
 import lombok.RequiredArgsConstructor;
@@ -62,7 +62,7 @@ public class RemoveExecutionCacheImpl extends TestCaseStepExecutorBase
           getActualAndExpectedResult(
               resultParameters, testCaseStepExecuteRequestDto, isUnknown, status, unknownReason);
     }
-    return buildResponse(status, actualAndExpectedResult, startTime, endTime);
+    return buildResponse(status, actualAndExpectedResult, startTime, endTime, null);
   }
 
   private void start(

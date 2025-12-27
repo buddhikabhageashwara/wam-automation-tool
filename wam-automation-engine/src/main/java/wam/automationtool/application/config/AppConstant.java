@@ -89,25 +89,37 @@ public final class AppConstant {
         "stringCacheMapKey";
     public static final String TCS_PREFERENCE_PARAMETER_TYPE_STRING_CACHE_MAP_VALUE =
         "stringCacheMapValue";
+    public static final String TCS_PREFERENCE_PARAMETER_TYPE_LOG_FILE = "logFile";
 
     private TestCaseStepPreferenceParameterTypeConstant() {
       throw new IllegalStateException(UTILITY_CLASS);
     }
   }
 
-  public static final class TestCaseStepActualAndExpectedResult {
-    public static final String TCS_RESULT_EXECUTION_ID = "executionId";
+  public static final class AliasParameterTypeConstant {
+    public static final String ALIAS_PARAMETER_TYPE_AGENT_URL = "agentURL";
+    public static final String ALIAS_PARAMETER_TYPE_LOG_FILE_LOCATION = "logFileLocation";
 
-    private TestCaseStepActualAndExpectedResult() {
+    private AliasParameterTypeConstant() {
       throw new IllegalStateException(UTILITY_CLASS);
     }
   }
 
-  public static final class AliasParameterTypeConstant {
-    public static final String ALIAS_PARAMETER_TYPE_AGENT_URL =
-        "agentURL"; // this is common to all tcs
+  public static final class TestCaseStepResultConstant {
+    public static final String TCS_RESULT_EXECUTION_ID = "executionId";
+    public static final String TCS_RESULT_WAIT_TIME = "waitTime";
+    public static final String TCS_RESULT_WEB_DRIVER_TYPE = "webDriver";
+    public static final String TCS_RESULT_WEB_DRIVER_CACHE_NAME = "webDriverCacheName";
+    public static final String TCS_RESULT_BROWSER_LINK = "browserLink";
+    public static final String TCS_RESULT_STRING_CACHE_MAP = "stringCacheMap";
+    public static final String TCS_RESULT_STRING_CACHE_MAP_KEY = "stringCacheMapKey";
+    public static final String TCS_RESULT_STRING_CACHE_MAP_VALUE = "stringCacheMapValue";
+    public static final String TCS_RESULT_LOG_FILE = "logFile";
+    public static final String TCS_RESULT_LOG_FILE_LOCATION = "logFileLocation";
+    public static final String TCS_RESULT_TEMP_LOG_FILE_NAME = "tempLogFileName";
+    public static final String TCS_RESULT_TEMP_LOG_FILE_LOCATION = "tempLogFileLocation";
 
-    private AliasParameterTypeConstant() {
+    private TestCaseStepResultConstant() {
       throw new IllegalStateException(UTILITY_CLASS);
     }
   }

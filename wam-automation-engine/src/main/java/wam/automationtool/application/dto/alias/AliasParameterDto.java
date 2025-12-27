@@ -1,12 +1,10 @@
 package wam.automationtool.application.dto.alias;
 
 import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 @Builder
-@Getter
-@Setter
+@Data
 public class AliasParameterDto {
 
   private long id;

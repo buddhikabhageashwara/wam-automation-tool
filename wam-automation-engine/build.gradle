@@ -82,6 +82,8 @@ dependencies {
 
 	//MYSQL connector
 	runtimeOnly(group: 'mysql', name: 'mysql-connector-java', version: '8.0.33')
+
+    implementation "commons-io:commons-io:2.16.1"
 }
 
 tasks.named('test') {

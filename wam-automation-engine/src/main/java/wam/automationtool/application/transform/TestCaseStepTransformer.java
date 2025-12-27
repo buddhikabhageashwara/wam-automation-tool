@@ -127,6 +127,7 @@ public class TestCaseStepTransformer {
         .expectedResult(testCaseStepExecuteResponseDto.getExpectedResult())
         .actualResult(testCaseStepExecuteResponseDto.getActualResult())
         .status(testCaseStepExecuteResponseDto.getStatus())
+        .logFileBase64Dto(testCaseStepExecuteResponseDto.getLogFileBase64Dto())
         .build();
   }
 

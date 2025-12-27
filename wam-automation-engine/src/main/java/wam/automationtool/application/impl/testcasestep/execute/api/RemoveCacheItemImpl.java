@@ -3,6 +3,7 @@ package wam.automationtool.application.impl.testcasestep.execute.api;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static wam.automationtool.application.config.AppConstant.AuthConstants.TEST_CASE_STEP_EXECUTION_FAIL_CODE;
 import static wam.automationtool.application.config.AppConstant.TestCaseStepPreferenceParameterTypeConstant.TCS_PREFERENCE_PARAMETER_TYPE_STRING_CACHE_MAP;
+import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_STRING_CACHE_MAP;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -64,7 +65,7 @@ public class RemoveCacheItemImpl extends TestCaseStepExecutorBase implements Tes
           getActualAndExpectedResult(
               resultParameters, testCaseStepExecuteRequestDto, isUnknown, status, unknownReason);
     }
-    return buildResponse(status, actualAndExpectedResult, startTime, endTime);
+    return buildResponse(status, actualAndExpectedResult, startTime, endTime, null);
   }
 
   private void start(
@@ -76,7 +77,7 @@ public class RemoveCacheItemImpl extends TestCaseStepExecutorBase implements Tes
             getAndValidateTCSPreferenceParameterTypeExistence(
                     extractedPreferenceParameters, TCS_PREFERENCE_PARAMETER_TYPE_STRING_CACHE_MAP);
     resultParameters.put(
-          TCS_PREFERENCE_PARAMETER_TYPE_STRING_CACHE_MAP,
+            TCS_RESULT_STRING_CACHE_MAP,
             stringCacheMapTCSPreferenceParameterType);
     final String executionId = testCaseStepExecuteRequestDto.getExecutionId();
     final CacheDataDto cacheDataDto = getAndValidateCacheDataDto(executionId);

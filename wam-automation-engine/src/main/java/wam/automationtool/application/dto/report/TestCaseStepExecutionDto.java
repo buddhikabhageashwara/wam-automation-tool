@@ -3,6 +3,7 @@ package wam.automationtool.application.dto.report;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import wam.automationtool.application.dto.testcasestep.LogFileBase64Dto;
 
 @Builder
 @Getter
@@ -18,4 +19,5 @@ public class TestCaseStepExecutionDto {
   private String expectedResult;
   private String actualResult;
   private String status;
+  private LogFileBase64Dto logFileBase64Dto;
 }

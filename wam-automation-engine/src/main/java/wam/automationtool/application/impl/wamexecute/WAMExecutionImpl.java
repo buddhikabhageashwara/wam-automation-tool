@@ -4,6 +4,12 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static wam.automationtool.application.config.AppConstant.AuthConstants.TEST_CASE_NOT_FOUND_CODE;
 import static wam.automationtool.application.config.AppConstant.AuthConstants.TEST_PLAN_NOT_FOUND_CODE;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -24,6 +30,7 @@ import wam.automationtool.application.dto.report.TestCaseExecutionSummaryDto;
 import wam.automationtool.application.dto.report.TestCaseStepExecutionDto;
 import wam.automationtool.application.dto.report.TestCaseStepExecutionSummaryDto;
 import wam.automationtool.application.dto.testcase.TestCaseDto;
+import wam.automationtool.application.dto.testcasestep.LogFileBase64Dto;
 import wam.automationtool.application.dto.testcasestep.TestCaseStepDto;
 import wam.automationtool.application.dto.testplan.TestPlanDto;
 import wam.automationtool.application.exception.TestCaseNotFoundException;
@@ -71,6 +78,46 @@ public class WAMExecutionImpl extends AuthDetailsProvider implements WAMExecutio
   @Value("${report.resource.path}")
   private String reportResourcePath;
 
+    private static boolean isBlank(final String value) {
+        return Objects.isNull(value) || value.isBlank();
+    }
+
+    /**
+     * Removes a possible "data:...;base64," prefix if FE sends a Data URL.
+     */
+    private static String stripDataUrlPrefix(final String base64) {
+        final int commaIndex = base64.indexOf(',');
+        if (base64.startsWith("data:") && commaIndex > -1) {
+            return base64.substring(commaIndex + 1);
+        }
+        return base64;
+    }
+
+    /**
+     * Prevents path traversal and illegal filename characters across OSes.
+     */
+    private static String sanitizeFileName(final String fileName) {
+        // remove any path parts
+        String name = fileName.replace("\\", "/");
+        final int lastSlash = name.lastIndexOf('/');
+        if (lastSlash >= 0) {
+            name = name.substring(lastSlash + 1);
+        }
+        // replace illegal/suspicious chars
+        name = name.replaceAll("[\\\\/:*?\"<>|]+", "_").trim();
+        if (name.isBlank()) {
+            return "log.txt";
+        }
+        return name;
+    }
+
+    private static String safeMsg(final Throwable throwable) {
+        final String message = throwable.getMessage();
+        return (Objects.isNull(message) || message.isBlank())
+                ? throwable.getClass().getSimpleName()
+                : message;
+    }
+
   @Override
   public void executeByTestPlan(final long testPlanId) {
     final String executionId = String.valueOf(UUID.randomUUID());
@@ -99,6 +146,12 @@ public class WAMExecutionImpl extends AuthDetailsProvider implements WAMExecutio
                           reportGenerationAndExecuteTestCaseSteps(
                               reportFilePath, testCase, aliasDtoList, executionId, jwtTokenDto.getToken());
                         });
+                  final CacheDataDto cacheDataDto = wamCacheManager.getCacheDataDto(executionId);
+                  final FileDetailsDto fileDetailsDto =
+                          Objects.isNull(cacheDataDto)
+                                  ? FileDetailsDto.builder().build()
+                                  : cacheDataDto.getFileDetailsDto();
+                  ReportGeneratorUtil.appendFileDetails(reportFilePath, fileDetailsDto);
                 completeReportGeneration(testCaseList.size(), reportFilePath);
               } finally {
                 wamCacheManager.removeItemFromCache(executionId);
@@ -131,6 +184,12 @@ public class WAMExecutionImpl extends AuthDetailsProvider implements WAMExecutio
                 addTestCaseDetailsToReport(reportFilePath, testCase);
                 reportGenerationAndExecuteTestCaseSteps(
                     reportFilePath, testCase, aliasDtoList, executionId, jwtTokenDto.getToken());
+                  final CacheDataDto cacheDataDto = wamCacheManager.getCacheDataDto(executionId);
+                  final FileDetailsDto fileDetailsDto =
+                          Objects.isNull(cacheDataDto)
+                                  ? FileDetailsDto.builder().build()
+                                  : cacheDataDto.getFileDetailsDto();
+                  ReportGeneratorUtil.appendFileDetails(reportFilePath, fileDetailsDto);
                 completeReportGeneration(1, reportFilePath);
               } finally {
                 wamCacheManager.removeItemFromCache(executionId);
@@ -181,7 +240,7 @@ public class WAMExecutionImpl extends AuthDetailsProvider implements WAMExecutio
                       passedTestCaseSteps, failedTestCaseSteps, reportFilePath, token);
             });
     completeTestCaseStepReportingDetails(
-        reportFilePath, totalTestCaseSteps, passedTestCaseSteps, failedTestCaseSteps, executionId);
+        reportFilePath, totalTestCaseSteps, passedTestCaseSteps, failedTestCaseSteps);
   }
 
   private void executeTestCaseStep(final TestCaseStep testCaseStep, final String executionId,
@@ -200,6 +259,7 @@ public class WAMExecutionImpl extends AuthDetailsProvider implements WAMExecutio
                     aliasDtoList, testCaseStepDto, executionId, token);
     final TestCaseStepExecuteResponseDto testCaseStepExecuteResponseDto =
             testCaseStepExecutor.execute(testCaseStepExecuteRequestDto);
+      persistLogFileToCacheIfExists(executionId, testCaseStepExecuteResponseDto, testCaseStepDto.getId());
     final TestCaseStepExecutionDto testCaseStepExecutionDto =
             testCaseStepTransformer.testCaseStepExecuteResponseDtoToTestCaseStepExecutionDto(
                     testCaseStepExecuteResponseDto, testCaseStep);
@@ -210,6 +270,133 @@ public class WAMExecutionImpl extends AuthDetailsProvider implements WAMExecutio
     ReportGeneratorUtil.appendTestCaseStepDetails(
             reportFilePath, testCaseStepExecutionDto);
   }
+
+    /**
+     * Persists the log file (if available as base64 in the step testCaseStepExecuteResponseDto) into the report logs folder,
+     * and updates execution cache with the created log file name.
+     *
+     * <p>Flow:
+     * <ul>
+     *   <li>Checks whether testCaseStepExecuteResponseDto contains {@code logFileBase64Dto}.</li>
+     *   <li>Loads cache data using {@code executionId}.</li>
+     *   <li>Creates the log file under {@code reportLogsFolderPath}.</li>
+     *   <li>Updates {@code cacheDataDto.fileDetailsDto.fileNameList} with the created file name.</li>
+     * </ul>
+     *
+     * <p>Notes:
+     * <ul>
+     *   <li>This method does not throw exceptions intentionally; any failure is logged and flow continues.</li>
+     *   <li>Uses a defensive copy for the list to avoid issues with unmodifiable lists.</li>
+     * </ul>
+     *
+     * @param executionId execution identifier used for cache access
+     * @param testCaseStepExecuteResponseDto test case step execution testCaseStepExecuteResponseDto
+     */
+    private void persistLogFileToCacheIfExists(final String executionId,
+                                               final TestCaseStepExecuteResponseDto testCaseStepExecuteResponseDto,
+                                               final long testCaseStepId) {
+        try {
+            if (Objects.isNull(testCaseStepExecuteResponseDto) ||
+                    Objects.isNull(testCaseStepExecuteResponseDto.getLogFileBase64Dto())) {
+                log.debug("log file base64 dto not found: executionId: {}, tcs id: {}",
+                        testCaseStepExecuteResponseDto, testCaseStepId);
+                return;
+            }
+            final CacheDataDto cacheDataDto = wamCacheManager.getCacheDataDto(executionId);
+            if (Objects.isNull(cacheDataDto)) {
+                log.warn("cache data not found: executionId: {}", executionId);
+                return;
+            }
+            final String reportLogsFolderPath = cacheDataDto.getReportLogsFolderPath();
+            if (Objects.isNull(reportLogsFolderPath) || reportLogsFolderPath.isBlank()) {
+                log.warn("report logs folder path not found: executionId: {}", executionId);
+                return;
+            }
+            final String createdLogFileName = createFileFromBase64(
+                    reportLogsFolderPath,
+                    testCaseStepExecuteResponseDto.getLogFileBase64Dto());
+            if (Objects.isNull(createdLogFileName) || createdLogFileName.isBlank()) {
+                log.warn("log file creation returned empty result: executionId: {}", executionId);
+                return;
+            }
+            FileDetailsDto fileDetailsDto = cacheDataDto.getFileDetailsDto();
+            if (Objects.isNull(fileDetailsDto)) {
+                fileDetailsDto = FileDetailsDto.builder().build();
+            }
+            final List<String> existingList = fileDetailsDto.getFileNameList();
+            final List<String> updatedList = Objects.nonNull(existingList)
+                    ? new ArrayList<>(existingList)
+                    : new ArrayList<>();
+            updatedList.add(createdLogFileName);
+            fileDetailsDto.setFileNameList(updatedList);
+            cacheDataDto.setFileDetailsDto(fileDetailsDto);
+            wamCacheManager.addToCache(executionId, cacheDataDto);
+            log.info("log file persisted to cache: executionId: {}, logFile: {}", executionId, createdLogFileName);
+        } catch (final Exception exception) {
+            log.error("failed to persist log file to cache: executionId: {}, reason: {}",
+                    executionId, exception.getMessage());
+        }
+    }
+
+    /**
+     * Creates a file from the given {@code logFileBase64Dto} under {@code targetFolderLocation}.
+     *
+     * <p>Behavior:
+     * <ul>
+     *   <li>Supports Windows and Linux paths via {@link java.nio.file.Path}.</li>
+     *   <li>Creates the folder if it does not exist.</li>
+     *   <li>Overwrites the file if it already exists.</li>
+     *   <li>Does not throw exceptions; logs errors and returns null on failure.</li>
+     * </ul>
+     *
+     * @param targetFolderLocation folder path where the file should be created
+     * @param logFileBase64Dto dto containing base64 content and fileName
+     * @return absolute file location if created successfully, otherwise null
+     */
+    public String createFileFromBase64(
+            final String targetFolderLocation,
+            final LogFileBase64Dto logFileBase64Dto) {
+        try {
+            if (Objects.isNull(logFileBase64Dto)) {
+                log.warn("log file create skipped: reason: dto is null");
+                return null;
+            }
+            if (isBlank(targetFolderLocation)) {
+                log.warn("log file create skipped: reason: targetFolderLocation is blank");
+                return null;
+            }
+            if (isBlank(logFileBase64Dto.getFileName())) {
+                log.warn("log file create skipped: reason: fileName is blank");
+                return null;
+            }
+            if (isBlank(logFileBase64Dto.getBase64())) {
+                log.warn("log file create skipped: reason: base64 is blank");
+                return null;
+            }
+            final Path folderPath = Paths.get(targetFolderLocation);
+            Files.createDirectories(folderPath);
+            final String safeFileName = sanitizeFileName(logFileBase64Dto.getFileName());
+            final Path outputFilePath = folderPath.resolve(safeFileName);
+            final byte[] bytes = Base64.getDecoder().decode(stripDataUrlPrefix(logFileBase64Dto.getBase64()));
+            Files.write(
+                    outputFilePath,
+                    bytes,
+                    StandardOpenOption.CREATE,
+                    StandardOpenOption.TRUNCATE_EXISTING,
+                    StandardOpenOption.WRITE
+            );
+            final String createdPath = outputFilePath.toAbsolutePath().toString();
+            log.info("log file created successfully: file: {}, sizeBytes: {}",
+                    createdPath, bytes.length);
+            return createdPath;
+        } catch (final Exception exception) {
+            log.error("log file create failed: folder: {}, fileName: {}, reason: {}",
+                    targetFolderLocation,
+                    (logFileBase64Dto == null ? null : logFileBase64Dto.getFileName()),
+                    safeMsg(exception));
+            return null;
+        }
+    }
 
   private void calculateTestCaseStepExecutionResults(
       final AtomicInteger passedTestCaseSteps,
@@ -226,8 +413,7 @@ public class WAMExecutionImpl extends AuthDetailsProvider implements WAMExecutio
       final String reportFilePath,
       final int totalTestCaseSteps,
       final AtomicInteger passedTestCaseSteps,
-      final AtomicInteger failedTestCaseSteps,
-      final String executionId) {
+      final AtomicInteger failedTestCaseSteps) {
     ReportGeneratorUtil.endTestCaseStepDetailsTable(reportFilePath);
     final TestCaseStepExecutionSummaryDto testCaseStepExecutionSummaryDto =
         TestCaseStepExecutionSummaryDto.builder()
@@ -237,12 +423,6 @@ public class WAMExecutionImpl extends AuthDetailsProvider implements WAMExecutio
             .build();
     ReportGeneratorUtil.appendTestCaseStepExecutionSummary(
         reportFilePath, testCaseStepExecutionSummaryDto);
-    final CacheDataDto cacheDataDto = wamCacheManager.getCacheDataDto(executionId);
-    final FileDetailsDto fileDetailsDto =
-        Objects.isNull(cacheDataDto)
-            ? FileDetailsDto.builder().build()
-            : cacheDataDto.getFileDetailsDto();
-    ReportGeneratorUtil.appendFileDetails(reportFilePath, fileDetailsDto);
   }
 
   private String initiateReportGeneration(final String executionId, final long testPlanId,

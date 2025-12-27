@@ -5,6 +5,9 @@ import static wam.automationtool.application.config.AppConstant.AuthConstants.TE
 import static wam.automationtool.application.config.AppConstant.TestCaseStepPreferenceParameterTypeConstant.TCS_PREFERENCE_PARAMETER_TYPE_BROWSER_LINK;
 import static wam.automationtool.application.config.AppConstant.TestCaseStepPreferenceParameterTypeConstant.TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME;
 import static wam.automationtool.application.config.AppConstant.TestCaseStepPreferenceParameterTypeConstant.TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_TYPE;
+import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_BROWSER_LINK;
+import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_WEB_DRIVER_CACHE_NAME;
+import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_WEB_DRIVER_TYPE;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -108,7 +111,7 @@ public class OpenBrowserImpl extends TestCaseStepExecutorBase implements TestCas
           getActualAndExpectedResult(
               resultParameters, testCaseStepExecuteRequestDto, isUnknown, status, unknownReason);
     }
-    return buildResponse(status, actualAndExpectedResult, startTime, endTime);
+    return buildResponse(status, actualAndExpectedResult, startTime, endTime, null);
   }
 
   private void start(
@@ -123,13 +126,13 @@ public class OpenBrowserImpl extends TestCaseStepExecutorBase implements TestCas
       getAndValidateTCSPreferenceParameterTypeExistence(
               extractedPreferenceParameters, TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME);
     resultParameters.put(
-        TCS_PREFERENCE_PARAMETER_TYPE_BROWSER_LINK,
+            TCS_RESULT_BROWSER_LINK,
         extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_BROWSER_LINK));
     resultParameters.put(
-        TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_TYPE,
+            TCS_RESULT_WEB_DRIVER_TYPE,
         extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_TYPE));
     resultParameters.put(
-        TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME,
+            TCS_RESULT_WEB_DRIVER_CACHE_NAME,
         extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME));
     final WebDriver driver =
         setupWebDriver(
