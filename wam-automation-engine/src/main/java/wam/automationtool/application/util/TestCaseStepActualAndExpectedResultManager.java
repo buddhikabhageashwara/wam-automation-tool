@@ -1,9 +1,14 @@
 package wam.automationtool.application.util;
 
+import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_ACTION_REGEX;
 import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_BROWSER_LINK;
+import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_EXCLUDE_REGEX;
 import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_EXECUTION_ID;
+import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_INCLUDE_REGEX;
 import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_LOG_FILE;
 import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_LOG_FILE_LOCATION;
+import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_LOG_READ_ASSERT_VALUE;
+import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_REGEX_GROUP_INDEX_NUMBER;
 import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_STRING_CACHE_MAP;
 import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_STRING_CACHE_MAP_KEY;
 import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_STRING_CACHE_MAP_VALUE;
@@ -65,10 +70,31 @@ public class TestCaseStepActualAndExpectedResultManager {
                 break;
             case A_LOG_FILE_LINE_READ:
                 passActualResultTemplate =
-                        "Log file was extracted successfully from path: {filePath} using keyword: {keyword}.";
+                        "log line read and assertion completed successfully: " +
+                                "logFile: {"+TCS_RESULT_LOG_FILE+"}, " +
+                                "tempLogFileName: {"+TCS_RESULT_TEMP_LOG_FILE_NAME+"}, " +
+                                "includeRegex: {"+TCS_RESULT_INCLUDE_REGEX+"}, " +
+                                "excludeRegex: {"+TCS_RESULT_EXCLUDE_REGEX+"}, " +
+                                "actionRegex: {"+TCS_RESULT_ACTION_REGEX+"}, " +
+                                "regexGroupIndexNumber: {"+TCS_RESULT_REGEX_GROUP_INDEX_NUMBER+"}, " +
+                                "logReadAssertValue: {"+TCS_RESULT_LOG_READ_ASSERT_VALUE+"}.";
                 failActualResultTemplate =
-                        "Failed to extract the log file from path: {filePath} using keyword: {keyword}.";
-                expectedResultTemplate = "The log file should contain entries matching keyword: {keyword}.";
+                        "failed to read log line or validate assertion: " +
+                                "logFile: {"+TCS_RESULT_LOG_FILE+"}, " +
+                                "tempLogFileName: {"+TCS_RESULT_TEMP_LOG_FILE_NAME+"}, " +
+                                "includeRegex: {"+TCS_RESULT_INCLUDE_REGEX+"}, " +
+                                "excludeRegex: {"+TCS_RESULT_EXCLUDE_REGEX+"}, " +
+                                "actionRegex: {"+TCS_RESULT_ACTION_REGEX+"}, " +
+                                "regexGroupIndexNumber: {"+TCS_RESULT_REGEX_GROUP_INDEX_NUMBER+"}, " +
+                                "logReadAssertValue: {"+TCS_RESULT_LOG_READ_ASSERT_VALUE+"}.";
+                expectedResultTemplate =
+                        "log reading should locate a matching line in logFile: {"+TCS_RESULT_LOG_FILE+"} " +
+                                "(tempLogFileName: {"+TCS_RESULT_TEMP_LOG_FILE_NAME+"}) " +
+                                "that matches includeRegex: {"+TCS_RESULT_INCLUDE_REGEX+"} " +
+                                "and does not match excludeRegex: {"+TCS_RESULT_EXCLUDE_REGEX+"}; " +
+                                "then actionRegex: {"+TCS_RESULT_ACTION_REGEX+"} should extract group index " +
+                                "{"+TCS_RESULT_REGEX_GROUP_INDEX_NUMBER+"} and equal logReadAssertValue: " +
+                                "{"+TCS_RESULT_LOG_READ_ASSERT_VALUE+"}.";
                 break;
             case A_LOG_FILE_EXTRACT:
                 passActualResultTemplate =

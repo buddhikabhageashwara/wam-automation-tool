@@ -1,12 +1,5 @@
 package wam.automationtool.application.util;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.input.Tailer;
-import org.apache.commons.io.input.TailerListenerAdapter;
-import wam.automationtool.application.dto.testcasestep.LogFileBase64Dto;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -24,6 +17,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.input.Tailer;
+import org.apache.commons.io.input.TailerListenerAdapter;
+import wam.automationtool.application.dto.testcasestep.LogFileBase64Dto;
 
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -174,6 +173,36 @@ public final class LogTailerUtil {
         } catch (final Exception exception) {
             log.error("temp log file delete failed: handleKey: {}, reason: {}", handleKey, safeMsg(exception));
             throw new LogTailingException("failed to delete temp log file: " + safeMsg(exception), exception);
+        }
+    }
+
+    /**
+     * Returns the temp log file path for the given {@code handleKey}.
+     *
+     * @param handleKey unique key used when starting (tempLogFileName).
+     * @return temp file path as {@link Path}
+     * @throws LogTailingException if handleKey is invalid or file does not exist / not readable.
+     */
+    public static Path getTempFilePath(final String handleKey) {
+        try {
+            if (Objects.isNull(handleKey) || handleKey.isBlank()) {
+                throw new LogTailingException("handleKey is null or blank");
+            }
+            final Path tempDirPath = ensureTempDirExists();
+            final Path tempOutputFilePath = tempDirPath.resolve(handleKey);
+            if (!Files.exists(tempOutputFilePath)) {
+                throw new LogTailingException("temp log file not found: " + tempOutputFilePath.toAbsolutePath());
+            }
+            if (!Files.isRegularFile(tempOutputFilePath)) {
+                throw new LogTailingException("temp log file path is not a file: " + tempOutputFilePath.toAbsolutePath());
+            }
+            if (!Files.isReadable(tempOutputFilePath)) {
+                throw new LogTailingException("temp log file is not readable: " + tempOutputFilePath.toAbsolutePath());
+            }
+            return tempOutputFilePath;
+        } catch (final Exception exception) {
+            log.error("temp log file path read failed: handleKey: {}, reason: {}", handleKey, safeMsg(exception));
+            throw new LogTailingException("failed to get temp log file path: " + safeMsg(exception), exception);
         }
     }
 

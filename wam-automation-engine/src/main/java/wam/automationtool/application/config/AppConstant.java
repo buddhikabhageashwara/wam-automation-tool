@@ -75,6 +75,15 @@ public final class AppConstant {
     }
   }
 
+  public static final class TestCaseStepAssertParameterTypeConstant {
+
+    public static final String TCS_ASSERT_PARAMETER_TYPE_LOG_READ = "logRead";
+
+    private TestCaseStepAssertParameterTypeConstant() {
+      throw new IllegalStateException(UTILITY_CLASS);
+    }
+  }
+
   public static final class TestCaseStepPreferenceParameterTypeConstant {
     public static final String TCS_PREFERENCE_PARAMETER_TYPE_AGENT_URL =
         "agentURL"; // this is common to all tcs
@@ -90,6 +99,12 @@ public final class AppConstant {
     public static final String TCS_PREFERENCE_PARAMETER_TYPE_STRING_CACHE_MAP_VALUE =
         "stringCacheMapValue";
     public static final String TCS_PREFERENCE_PARAMETER_TYPE_LOG_FILE = "logFile";
+    public static final String TCS_PREFERENCE_PARAMETER_TYPE_INCLUDE_REGEX = "includeRegex";
+    public static final String TCS_PREFERENCE_PARAMETER_TYPE_EXCLUDE_REGEX = "excludeRegex";
+    public static final String TCS_PREFERENCE_PARAMETER_TYPE_ACTION_REGEX = "actionRegex";
+    public static final String TCS_PREFERENCE_PARAMETER_TYPE_REGEX_GROUP_INDEX_NUMBER =
+        "regexGroupIndexNumber";
+    public static final String TCS_PREFERENCE_PARAMETER_TYPE_INVERT_RESULT = "invertResult";
 
     private TestCaseStepPreferenceParameterTypeConstant() {
       throw new IllegalStateException(UTILITY_CLASS);
@@ -118,6 +133,11 @@ public final class AppConstant {
     public static final String TCS_RESULT_LOG_FILE_LOCATION = "logFileLocation";
     public static final String TCS_RESULT_TEMP_LOG_FILE_NAME = "tempLogFileName";
     public static final String TCS_RESULT_TEMP_LOG_FILE_LOCATION = "tempLogFileLocation";
+    public static final String TCS_RESULT_INCLUDE_REGEX = "includeRegex";
+    public static final String TCS_RESULT_EXCLUDE_REGEX = "excludeRegex";
+    public static final String TCS_RESULT_ACTION_REGEX = "actionRegex";
+    public static final String TCS_RESULT_REGEX_GROUP_INDEX_NUMBER = "regexGroupIndexNumber";
+    public static final String TCS_RESULT_LOG_READ_ASSERT_VALUE = "logReadAssertValue";
 
     private TestCaseStepResultConstant() {
       throw new IllegalStateException(UTILITY_CLASS);

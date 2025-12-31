@@ -112,6 +112,38 @@ public abstract class TestCaseStepExecutorBase {
     return parameters;
   }
 
+  protected Map<String, String> extractAssertParameters(
+      final TestCaseStepExecuteRequestDto testCaseStepExecuteRequestDto) {
+    if (Objects.isNull(testCaseStepExecuteRequestDto)
+        || Objects.isNull(testCaseStepExecuteRequestDto.getTestCaseStepDto())
+        || Objects.isNull(
+            testCaseStepExecuteRequestDto.getTestCaseStepDto().getAssertParameterDtoList())
+        || testCaseStepExecuteRequestDto
+            .getTestCaseStepDto()
+            .getAssertParameterDtoList()
+            .isEmpty()) {
+      throw new TestCaseStepExecutionFailException(
+          BAD_REQUEST, TEST_CASE_STEP_EXECUTION_FAIL_CODE, "TCS assert parameters were not found.");
+    }
+    final Map<String, String> parameters = new LinkedHashMap<>();
+    testCaseStepExecuteRequestDto
+        .getTestCaseStepDto()
+        .getAssertParameterDtoList()
+        .forEach(
+            assertParameterDto -> {
+              if (Objects.nonNull(assertParameterDto)
+                  && Objects.nonNull(assertParameterDto.getParameterName())) {
+                parameters.put(
+                    assertParameterDto.getParameterName(), assertParameterDto.getParameterValue());
+              }
+            });
+    if (parameters.isEmpty()) {
+      throw new TestCaseStepExecutionFailException(
+          BAD_REQUEST, TEST_CASE_STEP_EXECUTION_FAIL_CODE, "TCS assert parameters were not found.");
+    }
+    return parameters;
+  }
+
   protected WebDriver getActiveWebDriverByName(final String webDriverCacheName) {
     final WebDriver existingDriver = OpenBrowserImpl.getActiveDrivers().get(webDriverCacheName);
     if (Objects.isNull(existingDriver)) {
@@ -163,6 +195,38 @@ public abstract class TestCaseStepExecutorBase {
   }
 
   /**
+   * Retrieves and validates the given assert parameter value from the extracted assert parameter
+   * map.
+   *
+   * <p>Precondition: {@code extractedAssertParameters} is already validated as non-null by the
+   * caller.
+   *
+   * <p>Throws {@link TestCaseStepExecutionFailException} if the assert parameter value is missing
+   * or blank.
+   *
+   * @param extractedAssertParameters extracted assert parameters map (non-null)
+   * @param assertParameterType assert parameter key to retrieve (e.g., "stringCacheMap")
+   * @return the non-blank assert parameter value
+   */
+  protected String getAndValidateAssertParameterTypeExistence(
+      final Map<String, String> extractedAssertParameters, final String assertParameterType) {
+    log.debug("Validating assert parameter existence | assertKey: {}", assertParameterType);
+    final String assertParameterValue = extractedAssertParameters.get(assertParameterType);
+    if (Objects.isNull(assertParameterValue) || assertParameterValue.trim().isEmpty()) {
+      log.error("Assert parameter is missing or blank | assertKey: {}", assertParameterType);
+      throw new TestCaseStepExecutionFailException(
+          BAD_REQUEST,
+          TEST_CASE_STEP_EXECUTION_FAIL_CODE,
+          "Assert parameter " + assertParameterType + " is not found.");
+    }
+    log.debug(
+        "Assert parameter validated successfully | assertKey: {} | value: {}",
+        assertParameterType,
+        assertParameterValue);
+    return assertParameterValue;
+  }
+
+  /**
    * Retrieves and validates {@link CacheDataDto} from cache for the given execution id.
    *
    * <p>Throws {@link TestCaseStepExecutionFailException} if cache data is missing.
@@ -181,19 +245,19 @@ public abstract class TestCaseStepExecutorBase {
     return cacheDataDto;
   }
 
-    /**
-     * Retrieves and validates {@link CacheDataDto} from cache for the given execution id.
-     *
-     * <p>Throws {@link TestCaseStepExecutionFailException} if cache data is missing.
-     *
-     * @param executionId execution id used as the cache key
-     * @return {@link CacheDataDto} found in cache
-     */
-    protected CacheDataDto getCacheDataDto(final String executionId) {
-        CacheDataDto cacheDataDto = getWamCacheManager().getCacheDataDto(executionId);
-        if (Objects.isNull(cacheDataDto)) {
-            cacheDataDto = CacheDataDto.builder().build();
-        }
-        return cacheDataDto;
+  /**
+   * Retrieves and validates {@link CacheDataDto} from cache for the given execution id.
+   *
+   * <p>Throws {@link TestCaseStepExecutionFailException} if cache data is missing.
+   *
+   * @param executionId execution id used as the cache key
+   * @return {@link CacheDataDto} found in cache
+   */
+  protected CacheDataDto getCacheDataDto(final String executionId) {
+    CacheDataDto cacheDataDto = getWamCacheManager().getCacheDataDto(executionId);
+    if (Objects.isNull(cacheDataDto)) {
+      cacheDataDto = CacheDataDto.builder().build();
     }
+    return cacheDataDto;
+  }
 }

@@ -1,12 +1,25 @@
 package wam.automationtool.application.impl.testcasestep.execute.api;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static wam.automationtool.application.config.AppConstant.AliasParameterTypeConstant.ALIAS_PARAMETER_TYPE_LOG_FILE_LOCATION;
 import static wam.automationtool.application.config.AppConstant.AuthConstants.TEST_CASE_STEP_EXECUTION_FAIL_CODE;
+import static wam.automationtool.application.config.AppConstant.TestCaseStepAssertParameterTypeConstant.TCS_ASSERT_PARAMETER_TYPE_LOG_READ;
+import static wam.automationtool.application.config.AppConstant.TestCaseStepPreferenceParameterTypeConstant.*;
+import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.*;
+import static wam.automationtool.application.util.LogTailerUtil.getTempFilePath;
 
+import java.nio.file.Path;
+import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import wam.automationtool.application.dto.alias.AliasParameterDto;
 import wam.automationtool.application.dto.execute.ActualAndExpectedResultDto;
 import wam.automationtool.application.dto.execute.TestCaseStepExecuteRequestDto;
 import wam.automationtool.application.dto.execute.TestCaseStepExecuteResponseDto;
@@ -14,7 +27,9 @@ import wam.automationtool.application.exception.TestCaseStepExecutionFailExcepti
 import wam.automationtool.application.impl.testcasestep.execute.TestCaseStepExecutor;
 import wam.automationtool.application.impl.testcasestep.execute.TestCaseStepExecutorBase;
 import wam.automationtool.application.util.AgentRequestManager;
+import wam.automationtool.application.util.AliasManager;
 import wam.automationtool.application.util.DateTimeManager;
+import wam.automationtool.application.util.LogRegexMatcherUtil;
 import wam.automationtool.domain.entity.testcasestep.TestCaseStepExecutionStatus;
 import wam.automationtool.domain.entity.testcasestep.TestCaseStepType;
 
@@ -63,14 +78,89 @@ public class LogFileLineReadImpl extends TestCaseStepExecutorBase implements Tes
     return buildResponse(status, actualAndExpectedResult, startTime, endTime, null);
   }
 
-  private void start(
-      final LinkedHashMap<String, String> resultParameters,
-      final TestCaseStepExecuteRequestDto testCaseStepExecuteRequestDto) {
-    try {
-      getWamCacheManager().clearAllCacheItems();
-    } catch (final Exception exception) {
-      throw new TestCaseStepExecutionFailException(
-          BAD_REQUEST, TEST_CASE_STEP_EXECUTION_FAIL_CODE, "Failed to clear all execution caches");
+    private void start(
+            final LinkedHashMap<String, String> resultParameters,
+            final TestCaseStepExecuteRequestDto testCaseStepExecuteRequestDto) {
+        try {
+            final Map<String, String> extractedPreferenceParameters =
+                    extractPreferenceParameters(testCaseStepExecuteRequestDto);
+            getAndValidateTCSPreferenceParameterTypeExistence(
+                    extractedPreferenceParameters, TCS_PREFERENCE_PARAMETER_TYPE_LOG_FILE);
+
+            final Map<String, String> extractedAssertParameters =
+                    extractAssertParameters(testCaseStepExecuteRequestDto);
+            getAndValidateAssertParameterTypeExistence(
+                    extractedAssertParameters, TCS_ASSERT_PARAMETER_TYPE_LOG_READ);
+
+            resultParameters.put(
+                    TCS_RESULT_LOG_FILE,
+                    extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_LOG_FILE));
+            resultParameters.put(
+                    TCS_RESULT_INCLUDE_REGEX,
+                    extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_INCLUDE_REGEX));
+            resultParameters.put(
+                    TCS_RESULT_EXCLUDE_REGEX,
+                    extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_EXCLUDE_REGEX));
+            resultParameters.put(
+                    TCS_RESULT_ACTION_REGEX,
+                    extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_ACTION_REGEX));
+            resultParameters.put(
+                    TCS_RESULT_REGEX_GROUP_INDEX_NUMBER,
+                    extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_REGEX_GROUP_INDEX_NUMBER));
+            resultParameters.put(
+                    TCS_RESULT_LOG_READ_ASSERT_VALUE,
+                    extractedAssertParameters.get(TCS_ASSERT_PARAMETER_TYPE_LOG_READ));
+
+            final List<AliasParameterDto> aliasParameterDtoList =
+                    AliasManager.getAliasParametersForAlias(testCaseStepExecuteRequestDto,
+                            TCS_PREFERENCE_PARAMETER_TYPE_LOG_FILE);
+            final String logFileLocation = Optional.ofNullable(aliasParameterDtoList)
+                    .orElseGet(Collections::emptyList)
+                    .stream()
+                    .filter(aliasParameterDto -> Objects.nonNull(aliasParameterDto))
+                    .filter(aliasParameterDto ->
+                            ALIAS_PARAMETER_TYPE_LOG_FILE_LOCATION.equals(
+                                    aliasParameterDto.getParameterName()))
+                    .map(AliasParameterDto::getParameterValue)
+                    .findFirst()
+                    .orElse(null);
+            if (Objects.isNull(logFileLocation)) {
+                throw new TestCaseStepExecutionFailException(
+                        BAD_REQUEST, TEST_CASE_STEP_EXECUTION_FAIL_CODE,
+                        "Failed to start log reading due to log file location not found");
+            } else {
+                resultParameters.put(TCS_RESULT_LOG_FILE_LOCATION, logFileLocation);
+                final String tempLogFileName  = "EXECUTION_ID_TC_ID_ALIAS_NAME_" +
+                        testCaseStepExecuteRequestDto.getExecutionId() + "_" +
+                        testCaseStepExecuteRequestDto.getTestCaseStepDto().getTestCaseId() + "_" +
+                        extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_LOG_FILE);
+                final String include = extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_INCLUDE_REGEX);
+                final String exclude = extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_EXCLUDE_REGEX);
+                final String regex = extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_ACTION_REGEX);
+                final int regexGroupNumber = Integer.parseInt(
+                        extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_REGEX_GROUP_INDEX_NUMBER));
+                final boolean invertResult = Boolean.parseBoolean(
+                        extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_INVERT_RESULT));
+                final Path tempLogFilePath = getTempFilePath(tempLogFileName);
+                final LogRegexMatcherUtil.LogRegexResult logRegexResult =
+                        LogRegexMatcherUtil.findAndValidate(
+                                tempLogFilePath,
+                                include,
+                                exclude,
+                                regex,
+                                regexGroupNumber,
+                                extractedAssertParameters.get(TCS_ASSERT_PARAMETER_TYPE_LOG_READ),
+                                invertResult);
+                if (logRegexResult.matched()) {
+                    throw new TestCaseStepExecutionFailException(
+                            BAD_REQUEST, TEST_CASE_STEP_EXECUTION_FAIL_CODE,
+                            "Expected log reading result is not found");
+                }
+                resultParameters.put(TCS_RESULT_TEMP_LOG_FILE_NAME, tempLogFileName);
+            }
+        } catch (final Exception exception) {
+            throw new TestCaseStepExecutionFailException(
+                    BAD_REQUEST, TEST_CASE_STEP_EXECUTION_FAIL_CODE, "Expected log reading result is not found");
+        }
     }
-  }
 }
