@@ -89,27 +89,6 @@ public class RemoveCacheItemImpl extends TestCaseStepExecutorBase implements Tes
   }
 
   /**
-   * Extracts and validates the string cache map inside the given {@link CacheDataDto}.
-   *
-   * <p>Throws {@link TestCaseStepExecutionFailException} if the map is missing or empty.
-   *
-   * @param cacheDataDto cache dto containing the string cache map
-   * @param executionId execution id used only for error message context
-   * @return non-null, non-empty string cache map
-   */
-  private Map<String, String> getAndValidateStringCacheMap(
-      final CacheDataDto cacheDataDto, final String executionId) {
-    final Map<String, String> stringCacheMap = cacheDataDto.getStringCacheMap();
-    if (Objects.isNull(stringCacheMap) || stringCacheMap.isEmpty()) {
-      throw new TestCaseStepExecutionFailException(
-          BAD_REQUEST,
-          TEST_CASE_STEP_EXECUTION_FAIL_CODE,
-          "String cache map is not found in cache for executionId: " + executionId);
-    }
-    return stringCacheMap;
-  }
-
-  /**
    * Removes and validates the presence of an item from the given string cache map by key.
    *
    * <p>Throws {@link TestCaseStepExecutionFailException} if no value exists for the given key.

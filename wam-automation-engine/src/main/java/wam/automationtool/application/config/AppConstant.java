@@ -105,6 +105,11 @@ public final class AppConstant {
     public static final String TCS_PREFERENCE_PARAMETER_TYPE_REGEX_GROUP_INDEX_NUMBER =
         "regexGroupIndexNumber";
     public static final String TCS_PREFERENCE_PARAMETER_TYPE_INVERT_RESULT = "invertResult";
+    public static final String TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_TYPE = "elementLocatorType";
+    public static final String TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_VALUE = "elementLocatorValue";
+    public static final String TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_INDEX = "elementLocatorIndex";
+    public static final String TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_INPUT_VALUE = "elementInputValue";
+    public static final String TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_INPUT_VALUE_CACHE_KEY = "elementInputValueCacheKey";
 
     private TestCaseStepPreferenceParameterTypeConstant() {
       throw new IllegalStateException(UTILITY_CLASS);
@@ -138,6 +143,12 @@ public final class AppConstant {
     public static final String TCS_RESULT_ACTION_REGEX = "actionRegex";
     public static final String TCS_RESULT_REGEX_GROUP_INDEX_NUMBER = "regexGroupIndexNumber";
     public static final String TCS_RESULT_LOG_READ_ASSERT_VALUE = "logReadAssertValue";
+    public static final String TCS_RESULT_ELEMENT_LOCATOR_TYPE = "elementLocatorType";
+    public static final String TCS_RESULT_ELEMENT_LOCATOR_VALUE = "elementLocatorValue";
+    public static final String TCS_RESULT_ELEMENT_LOCATOR_INDEX = "elementLocatorIndex";
+    public static final String TCS_RESULT_ELEMENT_INPUT_VALUE = "elementInputValue";
+    public static final String TCS_RESULT_ELEMENT_INPUT_VALUE_CACHE_KEY = "elementInputValueCacheKey";
+    public static final String TCS_RESULT_ELEMENT_INPUT_CACHE_VALUE = "elementInputCacheValue";
 
     private TestCaseStepResultConstant() {
       throw new IllegalStateException(UTILITY_CLASS);
