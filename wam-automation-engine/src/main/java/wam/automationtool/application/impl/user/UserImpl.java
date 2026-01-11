@@ -2,12 +2,13 @@ package wam.automationtool.application.impl.user;
 
 import static wam.automationtool.application.config.AppConstant.AuthConstants.PASSWORD_MISMATCHED_CODE;
 import static wam.automationtool.application.config.AppConstant.AuthConstants.WAM_AUTOMATION_USER_ERROR;
+import static wam.automationtool.application.config.AppConstant.SUPER_ADMIN;
 
+import jakarta.transaction.Transactional;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,12 +25,12 @@ import wam.automationtool.application.exception.InvalidCredentialsException;
 import wam.automationtool.application.exception.PasswordMismatchedException;
 import wam.automationtool.application.exception.UserException;
 import wam.automationtool.application.transform.UserTransformer;
-import wam.automationtool.application.util.AESEncryptDecryptUtil;
+import wam.automationtool.application.util.PasswordHashUtil;
 import wam.automationtool.application.util.WAMAutomationJWTTokenUtil;
 import wam.automationtool.domain.entity.permission.Permission;
+import wam.automationtool.domain.entity.user.WAMUser;
 import wam.automationtool.domain.entity.user.type.UserType;
 import wam.automationtool.domain.entity.usertype.permission.UserTypePermission;
-import wam.automationtool.domain.entity.user.WAMUser;
 import wam.automationtool.domain.service.UserTypeDomainService;
 import wam.automationtool.domain.service.UserTypePermissionDomainService;
 import wam.automationtool.domain.service.WAMUserDomainService;
@@ -66,11 +67,13 @@ public class UserImpl extends AuthDetailsProvider implements UserService {
    */
   @Override
   public UserLoginResponseDto loginUser(final UserLoginRequestDto userLoginRequestDTO) {
-    final String encryptedReceivedPassword =
-        AESEncryptDecryptUtil.encrypt(
-            userLoginRequestDTO.getUserPassword(), encryptDecryptSecretKey, saltValue);
-    final WAMUser wamUser =
-        getWAMUser(userLoginRequestDTO.getUserEmail(), encryptedReceivedPassword);
+    final WAMUser wamUser = getWAMUser(userLoginRequestDTO.getUserEmail());
+    final boolean isPasswordMatched =
+        PasswordHashUtil.matches(userLoginRequestDTO.getUserPassword(), wamUser.getUserPassword());
+    if (!isPasswordMatched) {
+      throw new InvalidCredentialsException(
+          HttpStatus.UNAUTHORIZED, WAM_AUTOMATION_USER_ERROR, "error.invalid.credential");
+    }
     final boolean isSuperAdmin = isSuperAdmin(wamUser.getId());
     final List<String> permissionTypeList = getPermissionListForUser(wamUser.getUserType());
     final WAMAutomationTokenDto wamAutomationTokenDto =
@@ -83,14 +86,13 @@ public class UserImpl extends AuthDetailsProvider implements UserService {
    * Retrieves a user from the database based on their email and password.
    *
    * @param userEmail the user's email address.
-   * @param password the user's encrypted password.
    * @return the WAMUser object if found.
    * @throws InvalidCredentialsException if no user with the given credentials is found.
    */
-  private WAMUser getWAMUser(final String userEmail, final String password) {
+  private WAMUser getWAMUser(final String userEmail) {
     final WAMUser wamUser =
         wamUserDomainService
-            .findByUserEmailAndUserPassword(userEmail, password)
+            .findByUserEmail(userEmail)
             .orElseThrow(
                 () ->
                     new InvalidCredentialsException(
@@ -101,17 +103,20 @@ public class UserImpl extends AuthDetailsProvider implements UserService {
   }
 
   /**
-   * Checks if the user is a Super Admin by comparing their ID with the first user's ID.
+   * Checks whether the given user is an active SUPER_ADMIN user.
    *
-   * @param wamUserId the ID of the user being checked.
-   * @return true if the user is a Super Admin, false otherwise.
+   * @param wamUserId the id of the user being checked
+   * @return true if the user is SUPER_ADMIN (and not deleted); otherwise false
    */
   private boolean isSuperAdmin(final String wamUserId) {
-    final boolean isSuperAdmin =
-        wamUserDomainService
-            .findFirstUser()
-            .map(superAdmin -> superAdmin.getId().equals(wamUserId))
-            .orElse(false);
+    boolean isSuperAdmin = false;
+    final Optional<UserType> userTypeOptional =
+        userTypeDomainService.findByUserTypeName(SUPER_ADMIN);
+    if (userTypeOptional.isPresent()) {
+      final String superAdminUserTypeId = userTypeOptional.get().getId();
+      isSuperAdmin =
+          wamUserDomainService.existsActiveUserByIdAndUserTypeId(wamUserId, superAdminUserTypeId);
+    }
     return isSuperAdmin;
   }
 
@@ -148,12 +153,6 @@ public class UserImpl extends AuthDetailsProvider implements UserService {
    */
   @Override
   public void resetPassword(final UserResetPasswordRequestDto userResetPasswordRequestDTO) {
-    final String encryptedNewPassword =
-        AESEncryptDecryptUtil.encrypt(
-            userResetPasswordRequestDTO.getNewPassword(), encryptDecryptSecretKey, saltValue);
-    final String encryptedCurrentPassword =
-        AESEncryptDecryptUtil.encrypt(
-            userResetPasswordRequestDTO.getCurrentPassword(), encryptDecryptSecretKey, saltValue);
     final boolean isNewAndConfirmPasswordsNotMatched =
         !userResetPasswordRequestDTO
             .getNewPassword()
@@ -162,29 +161,27 @@ public class UserImpl extends AuthDetailsProvider implements UserService {
       throw new PasswordMismatchedException(
           HttpStatus.BAD_REQUEST, PASSWORD_MISMATCHED_CODE, "error.password.mismatched");
     }
-    updateUser(encryptedCurrentPassword, encryptedNewPassword);
+    final WAMAutomationUserDetailsDto wamAutomationUserDetailsDto = getWAMAutomationUserDetails();
+    final String encryptedNewPassword =
+        PasswordHashUtil.hash(userResetPasswordRequestDTO.getConfirmPassword());
+    final WAMUser wamUser = getWAMUser(wamAutomationUserDetailsDto.getUserEmail());
+    final boolean isPasswordMatched =
+        PasswordHashUtil.matches(
+            userResetPasswordRequestDTO.getNewPassword(), wamUser.getUserPassword());
+    if (!isPasswordMatched) {
+      throw new InvalidCredentialsException(
+          HttpStatus.UNAUTHORIZED, WAM_AUTOMATION_USER_ERROR, "error.invalid.credential");
+    }
+    updateUser(encryptedNewPassword, wamUser);
   }
 
   /**
    * Updates the user's password in the database.
    *
-   * @param encryptedCurrentPassword the user's encrypted current password.
    * @param encryptedNewPassword the user's encrypted new password.
    * @throws InvalidCredentialsException if the current password is incorrect.
    */
-  private void updateUser(
-      final String encryptedCurrentPassword, final String encryptedNewPassword) {
-    final WAMAutomationUserDetailsDto wamAutomationUserDetailsDto = getWAMAutomationUserDetails();
-    final WAMUser wamUser =
-        wamUserDomainService
-            .findByUserEmailAndUserPassword(
-                wamAutomationUserDetailsDto.getUserEmail(), encryptedCurrentPassword)
-            .orElseThrow(
-                () ->
-                    new InvalidCredentialsException(
-                        HttpStatus.UNAUTHORIZED,
-                        WAM_AUTOMATION_USER_ERROR,
-                        "error.invalid.credential"));
+  private void updateUser(final String encryptedNewPassword, final WAMUser wamUser) {
     wamUser.setUserPassword(encryptedNewPassword);
     wamUserDomainService.update(wamUser);
   }
@@ -200,12 +197,9 @@ public class UserImpl extends AuthDetailsProvider implements UserService {
   @Transactional
   public void createUser(final UserCreateRequestDto userCreateRequestDTO) {
     final UserType userType = validateUserCreationAndRetrieveUserType(userCreateRequestDTO);
-    final String encryptedPassword =
-        AESEncryptDecryptUtil.encrypt(
-            userCreateRequestDTO.getUserPassword(), encryptDecryptSecretKey, saltValue);
+    final String passwordHash = PasswordHashUtil.hash(userCreateRequestDTO.getUserPassword());
     final WAMUser wamUser =
-        userTransformer.userCreateRequestDtoToWAMUser(
-            encryptedPassword, userCreateRequestDTO, userType);
+        userTransformer.userCreateRequestDtoToWAMUser(passwordHash, userCreateRequestDTO, userType);
     wamUserDomainService.add(wamUser);
   }
 
@@ -223,7 +217,7 @@ public class UserImpl extends AuthDetailsProvider implements UserService {
         !userCreateRequestDTO.getUserPassword().equals(userCreateRequestDTO.getConfirmPassword());
     if (isPasswordAndConfirmPasswordNotMatched) {
       throw new PasswordMismatchedException(
-              HttpStatus.BAD_REQUEST, PASSWORD_MISMATCHED_CODE, "error.password.mismatched");
+          HttpStatus.BAD_REQUEST, PASSWORD_MISMATCHED_CODE, "error.password.mismatched");
     }
     final Optional<WAMUser> wamUserOptional =
         wamUserDomainService.findByUserEmail(userCreateRequestDTO.getUserEmail());

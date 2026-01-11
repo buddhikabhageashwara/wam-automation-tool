@@ -13,6 +13,7 @@ public final class AppConstant {
   public static final String CREATED_MODIFIED_USER_ID = "createdModifiedUserId";
   public static final String WAM_AUTOMATION_BASE_PATH = "/v1/wam/automation/";
   public static final String WAM_CACHE_MANAGER = "WAMCache";
+  public static final String SUPER_ADMIN = "SUPER_ADMIN";
 
   private AppConstant() {}
 

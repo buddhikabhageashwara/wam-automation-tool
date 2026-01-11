@@ -1,5 +1,6 @@
 package wam.automationtool.domain.repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,5 +15,8 @@ public interface PreferenceParameterTypeRepository extends JpaRepository<Prefere
     List<PreferenceParameterType> findByIsDeleted(boolean isDeleted);
 
     Optional<PreferenceParameterType> findByParameterNameAndIsDeleted(String parameterName, boolean isDeleted);
+
+    List<PreferenceParameterType> findByParameterNameInAndIsDeleted(
+            Collection<String> parameterNames, boolean isDeleted);
 }
 

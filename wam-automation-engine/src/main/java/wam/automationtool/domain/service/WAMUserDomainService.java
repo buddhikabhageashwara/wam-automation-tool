@@ -1,19 +1,19 @@
 package wam.automationtool.domain.service;
 
-import wam.automationtool.domain.entity.user.WAMUser;
-import wam.automationtool.domain.repository.WAMUserRepository;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import wam.automationtool.domain.entity.user.WAMUser;
+import wam.automationtool.domain.repository.WAMUserRepository;
 
 @Service
 public class WAMUserDomainService {
 
-  private final WAMUserRepository WAMUserRepository;
+  private final WAMUserRepository wamUserRepository;
 
   @Autowired
-  public WAMUserDomainService(final WAMUserRepository WAMUserRepository) {
-    this.WAMUserRepository = WAMUserRepository;
+  public WAMUserDomainService(final WAMUserRepository wamUserRepository) {
+    this.wamUserRepository = wamUserRepository;
   }
 
   /**
@@ -22,20 +22,7 @@ public class WAMUserDomainService {
    * @param WAMUser The WAMUser entity to add.
    */
   public void add(final WAMUser WAMUser) {
-    WAMUserRepository.save(WAMUser);
-  }
-
-  /**
-   * Finds a WAMUser by userEmail and userPassword.
-   *
-   * @param userEmail The email of the user.
-   * @param userPassword The password of the user.
-   * @return An Optional containing the found WAMUser, or empty if not found.
-   */
-  public Optional<WAMUser> findByUserEmailAndUserPassword(
-          final String userEmail, final String userPassword) {
-    return WAMUserRepository.findByUserEmailAndUserPasswordAndIsDeleted(
-            userEmail, userPassword, false);
+    wamUserRepository.save(WAMUser);
   }
 
   /**
@@ -45,9 +32,8 @@ public class WAMUserDomainService {
    * @return An Optional containing the found WAMUser, or empty if not found.
    */
   public Optional<WAMUser> findByUserEmail(final String userEmail) {
-    return WAMUserRepository.findByUserEmailAndIsDeleted(userEmail, false);
+    return wamUserRepository.findByUserEmailAndIsDeleted(userEmail, false);
   }
-
 
   /**
    * Updates an existing WAMUser entity in the database.
@@ -55,15 +41,15 @@ public class WAMUserDomainService {
    * @param WAMUser The WAMUser entity to update.
    */
   public void update(final WAMUser WAMUser) {
-    WAMUserRepository.save(WAMUser);
+    wamUserRepository.save(WAMUser);
   }
 
-  /**
-   * Finds the very first WAMUser entity based on the createDate column.
-   *
-   * @return An Optional containing the very first WAMUser, or empty if not found.
-   */
-  public Optional<WAMUser> findFirstUser() {
-    return WAMUserRepository.findFirstByOrderByCreateDateAsc();
+  public long countActiveUsersForUserTypeId(final String userTypeId) {
+    return wamUserRepository.countByUserType_IdAndIsDeleted(userTypeId, false);
+  }
+
+  public boolean existsActiveUserByIdAndUserTypeId(
+      final String wamUserId, final String userTypeId) {
+    return wamUserRepository.existsByIdAndUserType_IdAndIsDeleted(wamUserId, userTypeId, false);
   }
 }
