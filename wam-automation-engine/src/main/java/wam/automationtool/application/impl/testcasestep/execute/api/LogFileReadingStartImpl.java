@@ -98,7 +98,7 @@ public class LogFileReadingStartImpl extends TestCaseStepExecutorBase implements
                 .stream()
                 .filter(aliasParameterDto -> Objects.nonNull(aliasParameterDto))
                 .filter(aliasParameterDto ->
-                        ALIAS_PARAMETER_TYPE_LOG_FILE_LOCATION.equals(
+                        ALIAS_PARAMETER_TYPE_LOG_FILE_LOCATION.getParameterName().equals(
                                 aliasParameterDto.getParameterName()))
                 .map(AliasParameterDto::getParameterValue)
                 .findFirst()
