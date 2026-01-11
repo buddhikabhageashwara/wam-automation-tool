@@ -11,6 +11,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -21,8 +22,6 @@ import wam.automationtool.domain.entity.testcase.TestCase;
 import wam.automationtool.domain.entity.testcasestep.parameter.AssertParameter;
 import wam.automationtool.domain.entity.testcasestep.parameter.PreferenceParameter;
 
-import java.util.List;import java.util.Set;
-
 @Getter
 @Setter
 @Builder
@@ -30,10 +29,10 @@ import java.util.List;import java.util.Set;
 @NoArgsConstructor
 @Entity
 @Table(
-        name = "test_case_step",
-        indexes = {
-                @Index(name = "test_case_step_pkey", columnList = "ID", unique = true),
-        })
+    name = "test_case_step",
+    indexes = {
+      @Index(name = "test_case_step_pkey", columnList = "ID", unique = true),
+    })
 public class TestCaseStep extends BaseEntity {
 
   @Id
@@ -49,6 +48,9 @@ public class TestCaseStep extends BaseEntity {
 
   @Column(name = "testCaseStepName", nullable = false)
   private String testCaseStepName;
+
+  @Column(name = "description", columnDefinition = "LONGTEXT")
+  private String description;
 
   // Many-to-One relationship with TestCase
   @ManyToOne

@@ -83,40 +83,47 @@ public class ElementValueInputImpl extends TestCaseStepExecutorBase
             final LinkedHashMap<String, String> resultParameters,
             final TestCaseStepExecuteRequestDto testCaseStepExecuteRequestDto) {
 
-        final Map<String, String> pref = extractPreferenceParameters(testCaseStepExecuteRequestDto);
+        final Map<String, String> extractedPreferenceParameters =
+                extractPreferenceParameters(testCaseStepExecuteRequestDto);
 
-        validateRequiredPreferenceParameters(pref);
+        validateRequiredPreferenceParameters(extractedPreferenceParameters);
 
-        putCommonResultParameters(resultParameters, pref);
+        putCommonResultParameters(resultParameters, extractedPreferenceParameters);
 
-        final String webDriverCacheName = pref.get(TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME.getParameterName());
+        final String webDriverCacheName =
+                extractedPreferenceParameters.get(
+                        TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME.getParameterName());
         final WebDriver driver = getActiveWebDriverByName(webDriverCacheName);
 
-        final String locatorType = pref.get(TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_TYPE.getParameterName());
-        final String locatorValue = pref.get(TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_VALUE.getParameterName());
-        final int locatorIndex = parseLocatorIndex(pref);
+        final String locatorType = extractedPreferenceParameters.get(
+                TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_TYPE.getParameterName());
+        final String locatorValue = extractedPreferenceParameters.get(
+                TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_VALUE.getParameterName());
+        final int locatorIndex = parseLocatorIndex(extractedPreferenceParameters);
 
-        final String resolvedInputValue = resolveInputValue(testCaseStepExecuteRequestDto, pref, resultParameters);
+        final String resolvedInputValue = resolveInputValue(
+                testCaseStepExecuteRequestDto, extractedPreferenceParameters, resultParameters);
 
         inputValueToElement(driver, locatorType, locatorValue, resolvedInputValue, locatorIndex);
     }
 
-    private void validateRequiredPreferenceParameters(final Map<String, String> pref) {
+    private void validateRequiredPreferenceParameters(final Map<String, String> preference) {
         getAndValidateTCSPreferenceParameterTypeExistence(
-                pref, TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME.getParameterName());
+                preference, TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME.getParameterName());
         getAndValidateTCSPreferenceParameterTypeExistence(
-                pref, TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_TYPE.getParameterName());
+                preference, TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_TYPE.getParameterName());
         getAndValidateTCSPreferenceParameterTypeExistence(
-                pref, TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_VALUE.getParameterName());
+                preference, TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_VALUE.getParameterName());
         getAndValidateTCSPreferenceParameterTypeExistence(
-                pref, TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_INDEX.getParameterName());
+                preference, TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_INDEX.getParameterName());
 
         // Conditional validation:
         // If cache key is empty -> input value must exist (as per your comment).
-        final String cacheKey = pref.get(TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_INPUT_VALUE_CACHE_KEY.getParameterName());
+        final String cacheKey = preference.get(
+                TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_INPUT_VALUE_CACHE_KEY.getParameterName());
         if (isBlank(cacheKey)) {
             getAndValidateTCSPreferenceParameterTypeExistence(
-                    pref, TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_INPUT_VALUE.getParameterName());
+                    preference, TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_INPUT_VALUE.getParameterName());
         }
     }
 

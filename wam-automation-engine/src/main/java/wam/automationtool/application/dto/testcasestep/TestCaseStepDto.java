@@ -16,6 +16,7 @@ public class TestCaseStepDto {
   private String testCaseStepType;
   private long executionOrder;
   private String testCaseStepName;
+  private String description;
   private long testCaseId;
   private List<PreferenceParameterDto> preferenceParameterDtoList;
   private List<AssertParameterDto> assertParameterDtoList;

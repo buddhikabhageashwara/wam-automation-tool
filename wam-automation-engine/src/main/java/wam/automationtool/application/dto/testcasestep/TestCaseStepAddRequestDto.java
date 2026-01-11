@@ -15,6 +15,7 @@ public class TestCaseStepAddRequestDto {
   private long executionOrder;
   @NotBlank(message = "error.test.case.step.name.empty")
   private String testCaseStepName;
+  private String description;
   private long testCaseId;
   private LinkedHashMap<String, String> preferenceParameters;
   private LinkedHashMap<String, String> assertParameters;

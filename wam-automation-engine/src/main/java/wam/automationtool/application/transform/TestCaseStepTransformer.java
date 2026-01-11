@@ -28,6 +28,7 @@ public class TestCaseStepTransformer {
         .testCaseStepType(testCaseStepAddRequestDto.getTestCaseStepType())
         .executionOrder(testCaseStepAddRequestDto.getExecutionOrder())
         .testCaseStepName(testCaseStepAddRequestDto.getTestCaseStepName())
+        .description(testCaseStepAddRequestDto.getDescription())
         .testCase(testCase)
         .build();
   }
@@ -50,6 +51,7 @@ public class TestCaseStepTransformer {
         .testCaseStepType(testCaseStep.getTestCaseStepType())
         .executionOrder(testCaseStep.getExecutionOrder())
         .testCaseStepName(testCaseStep.getTestCaseStepName())
+        .description(testCaseStep.getDescription())
         .testCaseId(
             Objects.nonNull(testCaseStep.getTestCase()) ? testCaseStep.getTestCase().getId() : null)
         .preferenceParameterDtoList(
