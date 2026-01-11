@@ -8,17 +8,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import wam.automationtool.application.dto.testcase.TestCaseResponseDto;
-import wam.automationtool.application.dto.testcase.TestCaseUpdateRequestDto;
-import wam.automationtool.application.dto.testcase.TestCasesResponseDto;
 import wam.automationtool.application.dto.testcasestep.TestCaseStepAddRequestDto;
 import wam.automationtool.application.dto.testcasestep.TestCaseStepResponseDto;
+import wam.automationtool.application.dto.testcasestep.TestCaseStepUpdateRequestDto;
 import wam.automationtool.application.dto.testcasestep.TestCaseStepsResponseDto;
 import wam.automationtool.application.impl.testcasestep.TestCaseStepService;
 
@@ -36,6 +34,13 @@ public final class TestCaseStepController {
     return ResponseEntity.status(HttpStatus.CREATED).build();
   }
 
+  @PatchMapping
+  public ResponseEntity<Void> updateTestCaseStep(
+      @RequestBody @Valid final TestCaseStepUpdateRequestDto testCaseStepUpdateRequestDto) {
+    testCaseStepService.updateTestCaseStep(testCaseStepUpdateRequestDto);
+    return ResponseEntity.status(HttpStatus.OK).build();
+  }
+
   @GetMapping("/testcases/{testcase-id}")
   public ResponseEntity<TestCaseStepsResponseDto> getTestCaseSteps(
       @PathVariable("testcase-id") long testCaseId) {
@@ -49,8 +54,8 @@ public final class TestCaseStepController {
   }
 
   @DeleteMapping("/{testcasestep-id}")
-  public ResponseEntity<Void> deleteTestCaseStep(@PathVariable("testcasestep-id")
-                                                   final long testCaseStepId) {
+  public ResponseEntity<Void> deleteTestCaseStep(
+      @PathVariable("testcasestep-id") final long testCaseStepId) {
     testCaseStepService.deleteTestCaseStep(testCaseStepId);
     return ResponseEntity.noContent().build();
   }

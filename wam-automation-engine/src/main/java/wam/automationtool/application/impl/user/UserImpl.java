@@ -167,7 +167,7 @@ public class UserImpl extends AuthDetailsProvider implements UserService {
     final WAMUser wamUser = getWAMUser(wamAutomationUserDetailsDto.getUserEmail());
     final boolean isPasswordMatched =
         PasswordHashUtil.matches(
-            userResetPasswordRequestDTO.getNewPassword(), wamUser.getUserPassword());
+            userResetPasswordRequestDTO.getCurrentPassword(), wamUser.getUserPassword());
     if (!isPasswordMatched) {
       throw new InvalidCredentialsException(
           HttpStatus.UNAUTHORIZED, WAM_AUTOMATION_USER_ERROR, "error.invalid.credential");

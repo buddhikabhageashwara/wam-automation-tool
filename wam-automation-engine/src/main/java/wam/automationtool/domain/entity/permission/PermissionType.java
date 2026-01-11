@@ -203,6 +203,13 @@ public enum PermissionType {
       "/v1/wam/automation/testcasesteps/POST",
       false,
       "Adds a new test case step"),
+  UPDATE_TEST_CASE_STEP(
+      "UPDATE_TEST_CASE_STEP",
+      "Update Test Case Step",
+      "update-test-case-step.html",
+      "/v1/wam/automation/testcasesteps/PATCH",
+      false,
+      "Update test case step"),
   RETRIEVE_TEST_CASE_STEPS_BY_TEST_CASE(
       "RETRIEVE_TEST_CASE_STEPS_BY_TEST_CASE",
       "",

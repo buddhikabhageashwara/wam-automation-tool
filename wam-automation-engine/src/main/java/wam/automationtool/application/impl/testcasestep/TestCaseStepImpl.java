@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import wam.automationtool.application.dto.testcasestep.TestCaseStepAddRequestDto;
 import wam.automationtool.application.dto.testcasestep.TestCaseStepDto;
 import wam.automationtool.application.dto.testcasestep.TestCaseStepResponseDto;
+import wam.automationtool.application.dto.testcasestep.TestCaseStepUpdateRequestDto;
 import wam.automationtool.application.dto.testcasestep.TestCaseStepsResponseDto;
 import wam.automationtool.application.exception.InvalidTestCaseStepTypeException;
 import wam.automationtool.application.exception.PreferenceParameterTypeNotFoundException;
@@ -171,5 +172,22 @@ public class TestCaseStepImpl extends AuthDetailsProvider implements TestCaseSte
                         TEST_CASE_STEP_NOT_FOUND_CODE,
                         "error.test.case.step.not.found"));
     testCaseStepDomainService.delete(testCaseStep);
+  }
+
+  @Override
+  public void updateTestCaseStep(final TestCaseStepUpdateRequestDto testCaseStepUpdateRequestDto) {
+    final TestCaseStep testCaseStep =
+        testCaseStepDomainService
+            .findById(testCaseStepUpdateRequestDto.getTestCaseStepId())
+            .orElseThrow(
+                () ->
+                    new TestCaseStepNotFoundException(
+                        NOT_FOUND,
+                        TEST_CASE_STEP_NOT_FOUND_CODE,
+                        "error.test.case.step.not.found"));
+    testCaseStep.setTestCaseStepName(testCaseStepUpdateRequestDto.getTestCaseStepName());
+    testCaseStep.setDescription(testCaseStepUpdateRequestDto.getDescription());
+    testCaseStep.setExecutionOrder(testCaseStepUpdateRequestDto.getExecutionOrder());
+    testCaseStepDomainService.update(testCaseStep);
   }
 }
