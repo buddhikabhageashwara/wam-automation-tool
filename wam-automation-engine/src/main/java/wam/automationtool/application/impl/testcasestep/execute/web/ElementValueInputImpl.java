@@ -2,7 +2,6 @@ package wam.automationtool.application.impl.testcasestep.execute.web;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static wam.automationtool.application.config.AppConstant.AuthConstants.TEST_CASE_STEP_EXECUTION_FAIL_CODE;
-import static wam.automationtool.application.config.AppConstant.TestCaseStepPreferenceParameterTypeConstant.*;
 import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_ELEMENT_INPUT_CACHE_VALUE;
 import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_ELEMENT_INPUT_VALUE;
 import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_ELEMENT_INPUT_VALUE_CACHE_KEY;
@@ -10,6 +9,7 @@ import static wam.automationtool.application.config.AppConstant.TestCaseStepResu
 import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_ELEMENT_LOCATOR_TYPE;
 import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_ELEMENT_LOCATOR_VALUE;
 import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_WEB_DRIVER_CACHE_NAME;
+import static wam.automationtool.application.config.pre.action.seed.TestCaseStepPreferenceParameterType.*;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -19,7 +19,6 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import wam.automationtool.application.config.AppConstant;
 import wam.automationtool.application.dto.cache.CacheDataDto;
 import wam.automationtool.application.dto.execute.ActualAndExpectedResultDto;
 import wam.automationtool.application.dto.execute.TestCaseStepExecuteRequestDto;
@@ -90,11 +89,11 @@ public class ElementValueInputImpl extends TestCaseStepExecutorBase
 
         putCommonResultParameters(resultParameters, pref);
 
-        final String webDriverCacheName = pref.get(TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME);
+        final String webDriverCacheName = pref.get(TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME.getParameterName());
         final WebDriver driver = getActiveWebDriverByName(webDriverCacheName);
 
-        final String locatorType = pref.get(TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_TYPE);
-        final String locatorValue = pref.get(TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_VALUE);
+        final String locatorType = pref.get(TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_TYPE.getParameterName());
+        final String locatorValue = pref.get(TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_VALUE.getParameterName());
         final int locatorIndex = parseLocatorIndex(pref);
 
         final String resolvedInputValue = resolveInputValue(testCaseStepExecuteRequestDto, pref, resultParameters);
@@ -104,20 +103,20 @@ public class ElementValueInputImpl extends TestCaseStepExecutorBase
 
     private void validateRequiredPreferenceParameters(final Map<String, String> pref) {
         getAndValidateTCSPreferenceParameterTypeExistence(
-                pref, TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME);
+                pref, TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME.getParameterName());
         getAndValidateTCSPreferenceParameterTypeExistence(
-                pref, TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_TYPE);
+                pref, TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_TYPE.getParameterName());
         getAndValidateTCSPreferenceParameterTypeExistence(
-                pref, TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_VALUE);
+                pref, TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_VALUE.getParameterName());
         getAndValidateTCSPreferenceParameterTypeExistence(
-                pref, TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_INDEX);
+                pref, TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_INDEX.getParameterName());
 
         // Conditional validation:
         // If cache key is empty -> input value must exist (as per your comment).
-        final String cacheKey = pref.get(TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_INPUT_VALUE_CACHE_KEY);
+        final String cacheKey = pref.get(TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_INPUT_VALUE_CACHE_KEY.getParameterName());
         if (isBlank(cacheKey)) {
             getAndValidateTCSPreferenceParameterTypeExistence(
-                    pref, TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_INPUT_VALUE);
+                    pref, TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_INPUT_VALUE.getParameterName());
         }
     }
 
@@ -127,27 +126,27 @@ public class ElementValueInputImpl extends TestCaseStepExecutorBase
 
         resultParameters.put(
                 TCS_RESULT_WEB_DRIVER_CACHE_NAME,
-                pref.get(TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME));
+                pref.get(TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME.getParameterName()));
 
         resultParameters.put(
                 TCS_RESULT_ELEMENT_LOCATOR_TYPE,
-                pref.get(TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_TYPE));
+                pref.get(TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_TYPE.getParameterName()));
 
         resultParameters.put(
                 TCS_RESULT_ELEMENT_LOCATOR_VALUE,
-                pref.get(TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_VALUE));
+                pref.get(TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_VALUE.getParameterName()));
 
         resultParameters.put(
                 TCS_RESULT_ELEMENT_LOCATOR_INDEX,
-                pref.get(TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_INDEX));
+                pref.get(TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_INDEX.getParameterName()));
 
         resultParameters.put(
                 TCS_RESULT_ELEMENT_INPUT_VALUE,
-                pref.get(TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_INPUT_VALUE));
+                pref.get(TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_INPUT_VALUE.getParameterName()));
 
         resultParameters.put(
                 TCS_RESULT_ELEMENT_INPUT_VALUE_CACHE_KEY,
-                pref.get(TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_INPUT_VALUE_CACHE_KEY));
+                pref.get(TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_INPUT_VALUE_CACHE_KEY.getParameterName()));
     }
 
     /**
@@ -163,7 +162,7 @@ public class ElementValueInputImpl extends TestCaseStepExecutorBase
             final Map<String, String> pref,
             final LinkedHashMap<String, String> resultParameters) {
 
-        final String cacheKey = pref.get(TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_INPUT_VALUE_CACHE_KEY);
+        final String cacheKey = pref.get(TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_INPUT_VALUE_CACHE_KEY.getParameterName());
 
         if (!isBlank(cacheKey)) {
             final Map<String, String> stringCacheMap = getStringCacheMap(requestDto);
@@ -187,7 +186,7 @@ public class ElementValueInputImpl extends TestCaseStepExecutorBase
         }
 
         // No cache key -> fallback to direct input value
-        final String directInput = pref.get(TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_INPUT_VALUE);
+        final String directInput = pref.get(TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_INPUT_VALUE.getParameterName());
 
         // New result parameter: no cache used, so keep it empty (or omit if you prefer)
         resultParameters.put(TCS_RESULT_ELEMENT_INPUT_CACHE_VALUE, null);
@@ -205,8 +204,7 @@ public class ElementValueInputImpl extends TestCaseStepExecutorBase
     private int parseLocatorIndex(final Map<String, String> pref) {
         return Integer.parseInt(
                 pref.get(
-                        AppConstant.TestCaseStepPreferenceParameterTypeConstant
-                                .TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_INDEX));
+                        TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_INDEX.getParameterName()));
     }
 
     private boolean isBlank(final String value) {

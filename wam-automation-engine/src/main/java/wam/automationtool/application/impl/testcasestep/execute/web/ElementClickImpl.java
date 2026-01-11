@@ -2,14 +2,14 @@ package wam.automationtool.application.impl.testcasestep.execute.web;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static wam.automationtool.application.config.AppConstant.AuthConstants.TEST_CASE_STEP_EXECUTION_FAIL_CODE;
-import static wam.automationtool.application.config.AppConstant.TestCaseStepPreferenceParameterTypeConstant.TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_INDEX;
-import static wam.automationtool.application.config.AppConstant.TestCaseStepPreferenceParameterTypeConstant.TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_TYPE;
-import static wam.automationtool.application.config.AppConstant.TestCaseStepPreferenceParameterTypeConstant.TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_VALUE;
-import static wam.automationtool.application.config.AppConstant.TestCaseStepPreferenceParameterTypeConstant.TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME;
 import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_ELEMENT_LOCATOR_INDEX;
 import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_ELEMENT_LOCATOR_TYPE;
 import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_ELEMENT_LOCATOR_VALUE;
 import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_WEB_DRIVER_CACHE_NAME;
+import static wam.automationtool.application.config.pre.action.seed.TestCaseStepPreferenceParameterType.TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_INDEX;
+import static wam.automationtool.application.config.pre.action.seed.TestCaseStepPreferenceParameterType.TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_TYPE;
+import static wam.automationtool.application.config.pre.action.seed.TestCaseStepPreferenceParameterType.TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_VALUE;
+import static wam.automationtool.application.config.pre.action.seed.TestCaseStepPreferenceParameterType.TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -19,7 +19,6 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import wam.automationtool.application.config.AppConstant;
 import wam.automationtool.application.dto.execute.ActualAndExpectedResultDto;
 import wam.automationtool.application.dto.execute.TestCaseStepExecuteRequestDto;
 import wam.automationtool.application.dto.execute.TestCaseStepExecuteResponseDto;
@@ -85,33 +84,32 @@ public class ElementClickImpl extends TestCaseStepExecutorBase
     final Map<String, String> extractedPreferenceParameters =
         extractPreferenceParameters(testCaseStepExecuteRequestDto);
     getAndValidateTCSPreferenceParameterTypeExistence(
-        extractedPreferenceParameters, TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME);
+        extractedPreferenceParameters, TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME.getParameterName());
     getAndValidateTCSPreferenceParameterTypeExistence(
-        extractedPreferenceParameters, TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_TYPE);
+        extractedPreferenceParameters, TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_TYPE.getParameterName());
     getAndValidateTCSPreferenceParameterTypeExistence(
-        extractedPreferenceParameters, TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_VALUE);
+        extractedPreferenceParameters, TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_VALUE.getParameterName());
     final String webDriverCacheName =
-        extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME);
+        extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME.getParameterName());
     resultParameters.put(TCS_RESULT_WEB_DRIVER_CACHE_NAME, webDriverCacheName);
     resultParameters.put(
         TCS_RESULT_ELEMENT_LOCATOR_TYPE,
-        extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_TYPE));
+        extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_TYPE.getParameterName()));
     resultParameters.put(
         TCS_RESULT_ELEMENT_LOCATOR_VALUE,
-        extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_VALUE));
+        extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_VALUE.getParameterName()));
     resultParameters.put(
         TCS_RESULT_ELEMENT_LOCATOR_INDEX,
-        extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_INDEX));
+        extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_INDEX.getParameterName()));
     final WebDriver driver = getActiveWebDriverByName(webDriverCacheName);
     final String locatorType =
-        extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_TYPE);
+        extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_TYPE.getParameterName());
     final String locatorValue =
-        extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_VALUE);
+        extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_VALUE.getParameterName());
     final int locatorIndex =
         Integer.parseInt(
             extractedPreferenceParameters.get(
-                AppConstant.TestCaseStepPreferenceParameterTypeConstant
-                    .TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_INDEX));
+                TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_INDEX.getParameterName()));
       clickElement(driver, locatorType, locatorValue, locatorIndex);
   }
 

@@ -1,11 +1,11 @@
 package wam.automationtool.application.impl.testcasestep.execute.api;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static wam.automationtool.application.config.AppConstant.AliasParameterTypeConstant.ALIAS_PARAMETER_TYPE_LOG_FILE_LOCATION;
 import static wam.automationtool.application.config.AppConstant.AuthConstants.TEST_CASE_STEP_EXECUTION_FAIL_CODE;
 import static wam.automationtool.application.config.AppConstant.TestCaseStepAssertParameterTypeConstant.TCS_ASSERT_PARAMETER_TYPE_LOG_READ;
-import static wam.automationtool.application.config.AppConstant.TestCaseStepPreferenceParameterTypeConstant.*;
 import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.*;
+import static wam.automationtool.application.config.pre.action.seed.TestCaseStepAliasParameterType.ALIAS_PARAMETER_TYPE_LOG_FILE_LOCATION;
+import static wam.automationtool.application.config.pre.action.seed.TestCaseStepPreferenceParameterType.*;
 import static wam.automationtool.application.util.LogTailerUtil.getTempFilePath;
 
 import java.nio.file.Path;
@@ -85,7 +85,7 @@ public class LogFileLineReadImpl extends TestCaseStepExecutorBase implements Tes
             final Map<String, String> extractedPreferenceParameters =
                     extractPreferenceParameters(testCaseStepExecuteRequestDto);
             getAndValidateTCSPreferenceParameterTypeExistence(
-                    extractedPreferenceParameters, TCS_PREFERENCE_PARAMETER_TYPE_LOG_FILE);
+                    extractedPreferenceParameters, TCS_PREFERENCE_PARAMETER_TYPE_LOG_FILE.getParameterName());
 
             final Map<String, String> extractedAssertParameters =
                     extractAssertParameters(testCaseStepExecuteRequestDto);
@@ -94,26 +94,26 @@ public class LogFileLineReadImpl extends TestCaseStepExecutorBase implements Tes
 
             resultParameters.put(
                     TCS_RESULT_LOG_FILE,
-                    extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_LOG_FILE));
+                    extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_LOG_FILE.getParameterName()));
             resultParameters.put(
                     TCS_RESULT_INCLUDE_REGEX,
-                    extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_INCLUDE_REGEX));
+                    extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_INCLUDE_REGEX.getParameterName()));
             resultParameters.put(
                     TCS_RESULT_EXCLUDE_REGEX,
-                    extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_EXCLUDE_REGEX));
+                    extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_EXCLUDE_REGEX.getParameterName()));
             resultParameters.put(
                     TCS_RESULT_ACTION_REGEX,
-                    extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_ACTION_REGEX));
+                    extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_ACTION_REGEX.getParameterName()));
             resultParameters.put(
                     TCS_RESULT_REGEX_GROUP_INDEX_NUMBER,
-                    extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_REGEX_GROUP_INDEX_NUMBER));
+                    extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_REGEX_GROUP_INDEX_NUMBER.getParameterName()));
             resultParameters.put(
                     TCS_RESULT_LOG_READ_ASSERT_VALUE,
                     extractedAssertParameters.get(TCS_ASSERT_PARAMETER_TYPE_LOG_READ));
 
             final List<AliasParameterDto> aliasParameterDtoList =
                     AliasManager.getAliasParametersForAlias(testCaseStepExecuteRequestDto,
-                            TCS_PREFERENCE_PARAMETER_TYPE_LOG_FILE);
+                            TCS_PREFERENCE_PARAMETER_TYPE_LOG_FILE.getParameterName());
             final String logFileLocation = Optional.ofNullable(aliasParameterDtoList)
                     .orElseGet(Collections::emptyList)
                     .stream()
@@ -133,14 +133,14 @@ public class LogFileLineReadImpl extends TestCaseStepExecutorBase implements Tes
                 final String tempLogFileName  = "EXECUTION_ID_TC_ID_ALIAS_NAME_" +
                         testCaseStepExecuteRequestDto.getExecutionId() + "_" +
                         testCaseStepExecuteRequestDto.getTestCaseStepDto().getTestCaseId() + "_" +
-                        extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_LOG_FILE);
-                final String include = extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_INCLUDE_REGEX);
-                final String exclude = extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_EXCLUDE_REGEX);
-                final String regex = extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_ACTION_REGEX);
+                        extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_LOG_FILE.getParameterName());
+                final String include = extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_INCLUDE_REGEX.getParameterName());
+                final String exclude = extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_EXCLUDE_REGEX.getParameterName());
+                final String regex = extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_ACTION_REGEX.getParameterName());
                 final int regexGroupNumber = Integer.parseInt(
-                        extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_REGEX_GROUP_INDEX_NUMBER));
+                        extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_REGEX_GROUP_INDEX_NUMBER.getParameterName()));
                 final boolean invertResult = Boolean.parseBoolean(
-                        extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_INVERT_RESULT));
+                        extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_INVERT_RESULT.getParameterName()));
                 final Path tempLogFilePath = getTempFilePath(tempLogFileName);
                 final LogRegexMatcherUtil.LogRegexResult logRegexResult =
                         LogRegexMatcherUtil.findAndValidate(

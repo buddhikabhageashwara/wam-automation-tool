@@ -1,9 +1,9 @@
 package wam.automationtool.application.util;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static wam.automationtool.application.config.AppConstant.AliasParameterTypeConstant.ALIAS_PARAMETER_TYPE_AGENT_URL;
 import static wam.automationtool.application.config.AppConstant.AuthConstants.TEST_CASE_STEP_EXECUTION_FAIL_CODE;
-import static wam.automationtool.application.config.AppConstant.TestCaseStepPreferenceParameterTypeConstant.TCS_PREFERENCE_PARAMETER_TYPE_AGENT_URL;
+import static wam.automationtool.application.config.pre.action.seed.TestCaseStepAliasParameterType.ALIAS_PARAMETER_TYPE_AGENT_URL;
+import static wam.automationtool.application.config.pre.action.seed.TestCaseStepPreferenceParameterType.TCS_PREFERENCE_PARAMETER_TYPE_WAIT_TIME;
 
 import java.net.URI;
 import java.util.List;
@@ -29,7 +29,7 @@ public class AgentRequestManager {
     final List<AliasDto> aliasDtoList = testCaseStepExecuteRequestDto.getAliasDtoList();
     final String tcsPreferenceParameterValue =
         getParameterValueByName(
-            preferenceParameterDtoList, TCS_PREFERENCE_PARAMETER_TYPE_AGENT_URL);
+            preferenceParameterDtoList, TCS_PREFERENCE_PARAMETER_TYPE_WAIT_TIME.getParameterName());
     if (Objects.isNull(tcsPreferenceParameterValue)) {
       log.debug(
           "Agent URL preference parameter is null. test case step id: {}",
@@ -38,7 +38,7 @@ public class AgentRequestManager {
     }
     final AliasDto extractedAlias =
         AliasManager.extractAlias(tcsPreferenceParameterValue, aliasDtoList);
-    final String agentUrl = getAliasParameterValue(extractedAlias, ALIAS_PARAMETER_TYPE_AGENT_URL);
+    final String agentUrl = getAliasParameterValue(extractedAlias, ALIAS_PARAMETER_TYPE_AGENT_URL.getParameterName());
     log.debug(
         "Resolved agent URL. test case step id: {}, agentUrl: {}",
         testCaseStepExecuteRequestDto.getTestCaseStepDto().getId(),

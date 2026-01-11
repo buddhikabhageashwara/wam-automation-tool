@@ -1,8 +1,9 @@
 package wam.automationtool.application.impl.testcasestep.execute.api;
 
-import static wam.automationtool.application.config.AppConstant.TestCaseStepPreferenceParameterTypeConstant.*;
 import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_STRING_CACHE_MAP_KEY;
 import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_STRING_CACHE_MAP_VALUE;
+import static wam.automationtool.application.config.pre.action.seed.TestCaseStepPreferenceParameterType.TCS_PREFERENCE_PARAMETER_TYPE_STRING_TYPE_CACHE_ITEM_KEY;
+import static wam.automationtool.application.config.pre.action.seed.TestCaseStepPreferenceParameterType.TCS_PREFERENCE_PARAMETER_TYPE_STRING_TYPE_CACHE_ITEM_VALUE;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -93,9 +94,9 @@ public class AddCacheItemImpl extends TestCaseStepExecutorBase implements TestCa
     final Map<String, String> extractedPreferenceParameters =
         extractPreferenceParameters(testCaseStepExecuteRequestDto);
     validateRequiredPreferenceParameter(
-        extractedPreferenceParameters, TCS_PREFERENCE_PARAMETER_TYPE_STRING_CACHE_MAP_KEY);
+        extractedPreferenceParameters, TCS_PREFERENCE_PARAMETER_TYPE_STRING_TYPE_CACHE_ITEM_KEY.getParameterName());
     validateRequiredPreferenceParameter(
-        extractedPreferenceParameters, TCS_PREFERENCE_PARAMETER_TYPE_STRING_CACHE_MAP_VALUE);
+        extractedPreferenceParameters, TCS_PREFERENCE_PARAMETER_TYPE_STRING_TYPE_CACHE_ITEM_VALUE.getParameterName());
     return extractedPreferenceParameters;
   }
 
@@ -125,10 +126,10 @@ public class AddCacheItemImpl extends TestCaseStepExecutorBase implements TestCa
       final Map<String, String> extractedPreferenceParameters) {
     resultParameters.put(
             TCS_RESULT_STRING_CACHE_MAP_KEY,
-        extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_STRING_CACHE_MAP_KEY));
+        extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_STRING_TYPE_CACHE_ITEM_KEY.getParameterName()));
     resultParameters.put(
             TCS_RESULT_STRING_CACHE_MAP_VALUE,
-        extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_STRING_CACHE_MAP_VALUE));
+        extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_STRING_TYPE_CACHE_ITEM_VALUE.getParameterName()));
   }
 
   /**
@@ -158,8 +159,8 @@ public class AddCacheItemImpl extends TestCaseStepExecutorBase implements TestCa
       stringCacheMap = new HashMap<>();
     }
     stringCacheMap.put(
-        extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_STRING_CACHE_MAP_KEY),
-        extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_STRING_CACHE_MAP_VALUE));
+        extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_STRING_TYPE_CACHE_ITEM_KEY.getParameterName()),
+        extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_STRING_TYPE_CACHE_ITEM_VALUE.getParameterName()));
     return stringCacheMap;
   }
 

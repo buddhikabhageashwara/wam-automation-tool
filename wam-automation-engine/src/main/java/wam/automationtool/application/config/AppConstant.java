@@ -85,47 +85,6 @@ public final class AppConstant {
     }
   }
 
-  public static final class TestCaseStepPreferenceParameterTypeConstant {
-    public static final String TCS_PREFERENCE_PARAMETER_TYPE_AGENT_URL =
-        "agentURL"; // this is common to all tcs
-
-    public static final String TCS_PREFERENCE_PARAMETER_TYPE_WAIT_TIME = "waitTime";
-    public static final String TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_TYPE = "webDriver";
-    public static final String TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME =
-        "webDriverCacheName";
-    public static final String TCS_PREFERENCE_PARAMETER_TYPE_BROWSER_LINK = "browserLink";
-    public static final String TCS_PREFERENCE_PARAMETER_TYPE_STRING_CACHE_MAP = "stringCacheMap";
-    public static final String TCS_PREFERENCE_PARAMETER_TYPE_STRING_CACHE_MAP_KEY =
-        "stringCacheMapKey";
-    public static final String TCS_PREFERENCE_PARAMETER_TYPE_STRING_CACHE_MAP_VALUE =
-        "stringCacheMapValue";
-    public static final String TCS_PREFERENCE_PARAMETER_TYPE_LOG_FILE = "logFile";
-    public static final String TCS_PREFERENCE_PARAMETER_TYPE_INCLUDE_REGEX = "includeRegex";
-    public static final String TCS_PREFERENCE_PARAMETER_TYPE_EXCLUDE_REGEX = "excludeRegex";
-    public static final String TCS_PREFERENCE_PARAMETER_TYPE_ACTION_REGEX = "actionRegex";
-    public static final String TCS_PREFERENCE_PARAMETER_TYPE_REGEX_GROUP_INDEX_NUMBER =
-        "regexGroupIndexNumber";
-    public static final String TCS_PREFERENCE_PARAMETER_TYPE_INVERT_RESULT = "invertResult";
-    public static final String TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_TYPE = "elementLocatorType";
-    public static final String TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_VALUE = "elementLocatorValue";
-    public static final String TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_INDEX = "elementLocatorIndex";
-    public static final String TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_INPUT_VALUE = "elementInputValue";
-    public static final String TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_INPUT_VALUE_CACHE_KEY = "elementInputValueCacheKey";
-
-    private TestCaseStepPreferenceParameterTypeConstant() {
-      throw new IllegalStateException(UTILITY_CLASS);
-    }
-  }
-
-  public static final class AliasParameterTypeConstant {
-    public static final String ALIAS_PARAMETER_TYPE_AGENT_URL = "agentURL";
-    public static final String ALIAS_PARAMETER_TYPE_LOG_FILE_LOCATION = "logFileLocation";
-
-    private AliasParameterTypeConstant() {
-      throw new IllegalStateException(UTILITY_CLASS);
-    }
-  }
-
   public static final class TestCaseStepResultConstant {
     public static final String TCS_RESULT_EXECUTION_ID = "executionId";
     public static final String TCS_RESULT_WAIT_TIME = "waitTime";

@@ -2,8 +2,8 @@ package wam.automationtool.application.impl.testcasestep.execute.api;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static wam.automationtool.application.config.AppConstant.AuthConstants.TEST_CASE_STEP_EXECUTION_FAIL_CODE;
-import static wam.automationtool.application.config.AppConstant.TestCaseStepPreferenceParameterTypeConstant.TCS_PREFERENCE_PARAMETER_TYPE_STRING_CACHE_MAP;
 import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_STRING_CACHE_MAP;
+import static wam.automationtool.application.config.pre.action.seed.TestCaseStepPreferenceParameterType.TCS_PREFERENCE_PARAMETER_TYPE_STRING_TYPE_CACHE_ITEMS;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -75,7 +75,7 @@ public class RemoveCacheItemImpl extends TestCaseStepExecutorBase implements Tes
         extractPreferenceParameters(testCaseStepExecuteRequestDto);
     final String stringCacheMapTCSPreferenceParameterType =
             getAndValidateTCSPreferenceParameterTypeExistence(
-                    extractedPreferenceParameters, TCS_PREFERENCE_PARAMETER_TYPE_STRING_CACHE_MAP);
+                    extractedPreferenceParameters, TCS_PREFERENCE_PARAMETER_TYPE_STRING_TYPE_CACHE_ITEMS.getParameterName());
     resultParameters.put(
             TCS_RESULT_STRING_CACHE_MAP,
             stringCacheMapTCSPreferenceParameterType);

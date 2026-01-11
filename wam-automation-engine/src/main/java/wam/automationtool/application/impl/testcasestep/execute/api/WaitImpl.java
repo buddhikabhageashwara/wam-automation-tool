@@ -2,8 +2,8 @@ package wam.automationtool.application.impl.testcasestep.execute.api;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static wam.automationtool.application.config.AppConstant.AuthConstants.TEST_CASE_STEP_EXECUTION_FAIL_CODE;
-import static wam.automationtool.application.config.AppConstant.TestCaseStepPreferenceParameterTypeConstant.TCS_PREFERENCE_PARAMETER_TYPE_WAIT_TIME;
 import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_WAIT_TIME;
+import static wam.automationtool.application.config.pre.action.seed.TestCaseStepPreferenceParameterType.TCS_PREFERENCE_PARAMETER_TYPE_WAIT_TIME;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -80,8 +80,8 @@ public class WaitImpl extends TestCaseStepExecutorBase implements TestCaseStepEx
     final Map<String, String> extractedPreferenceParameters =
         extractPreferenceParameters(testCaseStepExecuteRequestDto);
       getAndValidateTCSPreferenceParameterTypeExistence(
-              extractedPreferenceParameters, TCS_PREFERENCE_PARAMETER_TYPE_WAIT_TIME);
-    return extractedPreferenceParameters.getOrDefault(TCS_PREFERENCE_PARAMETER_TYPE_WAIT_TIME, "0");
+              extractedPreferenceParameters, TCS_PREFERENCE_PARAMETER_TYPE_WAIT_TIME.getParameterName());
+    return extractedPreferenceParameters.getOrDefault(TCS_PREFERENCE_PARAMETER_TYPE_WAIT_TIME.getParameterName(), "0");
   }
 
   private void performWait(String waitTime) {

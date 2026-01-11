@@ -1,12 +1,12 @@
 package wam.automationtool.application.impl.testcasestep.execute.api;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static wam.automationtool.application.config.AppConstant.AliasParameterTypeConstant.ALIAS_PARAMETER_TYPE_LOG_FILE_LOCATION;
 import static wam.automationtool.application.config.AppConstant.AuthConstants.TEST_CASE_STEP_EXECUTION_FAIL_CODE;
-import static wam.automationtool.application.config.AppConstant.TestCaseStepPreferenceParameterTypeConstant.TCS_PREFERENCE_PARAMETER_TYPE_LOG_FILE;
 import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_LOG_FILE;
 import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_LOG_FILE_LOCATION;
 import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_TEMP_LOG_FILE_NAME;
+import static wam.automationtool.application.config.pre.action.seed.TestCaseStepAliasParameterType.ALIAS_PARAMETER_TYPE_LOG_FILE_LOCATION;
+import static wam.automationtool.application.config.pre.action.seed.TestCaseStepPreferenceParameterType.TCS_PREFERENCE_PARAMETER_TYPE_LOG_FILE;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -87,13 +87,13 @@ public class LogFileExtractImpl extends TestCaseStepExecutorBase implements Test
             final Map<String, String> extractedPreferenceParameters =
                     extractPreferenceParameters(testCaseStepExecuteRequestDto);
             getAndValidateTCSPreferenceParameterTypeExistence(
-                    extractedPreferenceParameters, TCS_PREFERENCE_PARAMETER_TYPE_LOG_FILE);
+                    extractedPreferenceParameters, TCS_PREFERENCE_PARAMETER_TYPE_LOG_FILE.getParameterName());
             resultParameters.put(
                     TCS_RESULT_LOG_FILE,
-                    extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_LOG_FILE));
+                    extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_LOG_FILE.getParameterName()));
             final List<AliasParameterDto> aliasParameterDtoList =
                     AliasManager.getAliasParametersForAlias(testCaseStepExecuteRequestDto,
-                            TCS_PREFERENCE_PARAMETER_TYPE_LOG_FILE);
+                            TCS_PREFERENCE_PARAMETER_TYPE_LOG_FILE.getParameterName());
             final String logFileLocation = Optional.ofNullable(aliasParameterDtoList)
                     .orElseGet(Collections::emptyList)
                     .stream()
@@ -113,7 +113,7 @@ public class LogFileExtractImpl extends TestCaseStepExecutorBase implements Test
                 final String tempLogFileName  = "EXECUTION_ID_TC_ID_ALIAS_NAME_" +
                         testCaseStepExecuteRequestDto.getExecutionId() + "_" +
                         testCaseStepExecuteRequestDto.getTestCaseStepDto().getTestCaseId() + "_" +
-                        extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_LOG_FILE);
+                        extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_LOG_FILE.getParameterName());
                 logFileBase64Dto =
                         LogTailerUtil.getTempFileAsBase64(tempLogFileName);
                 resultParameters.put(TCS_RESULT_TEMP_LOG_FILE_NAME, tempLogFileName);

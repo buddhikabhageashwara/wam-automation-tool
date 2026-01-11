@@ -1,5 +1,6 @@
 package wam.automationtool.domain.repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -19,4 +20,7 @@ public interface AliasParameterTypeRepository extends JpaRepository<AliasParamet
   @EntityGraph(attributePaths = {"aliasParameters"})
   Optional<AliasParameterType> findByParameterNameAndIsDeleted(
       String parameterName, boolean isDeleted);
+
+  List<AliasParameterType> findByParameterNameInAndIsDeleted(
+      Collection<String> parameterNames, boolean isDeleted);
 }
