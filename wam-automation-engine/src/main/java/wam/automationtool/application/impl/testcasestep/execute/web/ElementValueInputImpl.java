@@ -1,3 +1,27 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2024 buddhika bhageashwara alwis
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package wam.automationtool.application.impl.testcasestep.execute.web;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
@@ -82,28 +106,21 @@ public class ElementValueInputImpl extends TestCaseStepExecutorBase
     private void start(
             final LinkedHashMap<String, String> resultParameters,
             final TestCaseStepExecuteRequestDto testCaseStepExecuteRequestDto) {
-
         final Map<String, String> extractedPreferenceParameters =
                 extractPreferenceParameters(testCaseStepExecuteRequestDto);
-
         validateRequiredPreferenceParameters(extractedPreferenceParameters);
-
         putCommonResultParameters(resultParameters, extractedPreferenceParameters);
-
         final String webDriverCacheName =
                 extractedPreferenceParameters.get(
                         TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME.getParameterName());
         final WebDriver driver = getActiveWebDriverByName(webDriverCacheName);
-
         final String locatorType = extractedPreferenceParameters.get(
                 TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_TYPE.getParameterName());
         final String locatorValue = extractedPreferenceParameters.get(
                 TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_VALUE.getParameterName());
         final int locatorIndex = parseLocatorIndex(extractedPreferenceParameters);
-
         final String resolvedInputValue = resolveInputValue(
                 testCaseStepExecuteRequestDto, extractedPreferenceParameters, resultParameters);
-
         inputValueToElement(driver, locatorType, locatorValue, resolvedInputValue, locatorIndex);
     }
 
@@ -165,47 +182,38 @@ public class ElementValueInputImpl extends TestCaseStepExecutorBase
      * - TCS_RESULT_ELEMENT_INPUT_CACHE_VALUE (new)
      */
     private String resolveInputValue(
-            final TestCaseStepExecuteRequestDto requestDto,
-            final Map<String, String> pref,
+            final TestCaseStepExecuteRequestDto testCaseStepExecuteRequestDto,
+            final Map<String, String> extractedPreferenceParameters,
             final LinkedHashMap<String, String> resultParameters) {
-
-        final String cacheKey = pref.get(TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_INPUT_VALUE_CACHE_KEY.getParameterName());
-
+        final String cacheKey = extractedPreferenceParameters.get(
+                TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_INPUT_VALUE_CACHE_KEY.getParameterName());
         if (!isBlank(cacheKey)) {
-            final Map<String, String> stringCacheMap = getStringCacheMap(requestDto);
-
+            final Map<String, String> stringCacheMap = getStringCacheMap(testCaseStepExecuteRequestDto);
             final String cachedValue = stringCacheMap.get(cacheKey);
-
             // Save resolved cache value to results (new parameter).
             resultParameters.put(TCS_RESULT_ELEMENT_INPUT_CACHE_VALUE, cachedValue);
-
             // If you want to enforce "cache key must exist", keep this validation.
             // If null is allowed, remove this block.
-            if (cachedValue == null) {
+            if (Objects.isNull(cachedValue)) {
                 throw new TestCaseStepExecutionFailException(
                         BAD_REQUEST,
                         TEST_CASE_STEP_EXECUTION_FAIL_CODE,
                         "No cached value found for key: " + cacheKey
-                                + " (executionId=" + requestDto.getExecutionId() + ")");
+                                + " (executionId=" + testCaseStepExecuteRequestDto.getExecutionId() + ")");
             }
-
             return cachedValue;
         }
-
         // No cache key -> fallback to direct input value
-        final String directInput = pref.get(TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_INPUT_VALUE.getParameterName());
-
+        final String directInput = extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_INPUT_VALUE.getParameterName());
         // New result parameter: no cache used, so keep it empty (or omit if you prefer)
         resultParameters.put(TCS_RESULT_ELEMENT_INPUT_CACHE_VALUE, null);
-
         return directInput;
     }
 
-    private Map<String, String> getStringCacheMap(final TestCaseStepExecuteRequestDto requestDto) {
+    private Map<String, String> getStringCacheMap(final TestCaseStepExecuteRequestDto testCaseStepExecuteRequestDto) {
         final CacheDataDto cacheDataDto =
-                getAndValidateCacheDataDto(requestDto.getExecutionId());
-
-        return getAndValidateStringCacheMap(cacheDataDto, requestDto.getExecutionId());
+                getAndValidateCacheDataDto(testCaseStepExecuteRequestDto.getExecutionId());
+        return getAndValidateStringCacheMap(cacheDataDto, testCaseStepExecuteRequestDto.getExecutionId());
     }
 
     private int parseLocatorIndex(final Map<String, String> pref) {
