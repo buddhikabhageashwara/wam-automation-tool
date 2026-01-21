@@ -59,7 +59,7 @@ public class PreferenceParameter extends BaseEntity {
   @Column(name = "ID", unique = true, nullable = false, updatable = false)
   private Long id;
 
-  @Column(name = "parameterValue")
+  @Column(name = "parameterValue", columnDefinition = "LONGTEXT")
   private String parameterValue;
 
   // Many-to-One relationship with TestCaseStep

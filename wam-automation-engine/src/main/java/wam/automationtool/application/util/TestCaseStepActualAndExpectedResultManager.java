@@ -24,33 +24,13 @@
 
 package wam.automationtool.application.util;
 
+import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.*;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import wam.automationtool.application.dto.execute.ActualAndExpectedResultDto;
 import wam.automationtool.domain.entity.testcasestep.TestCaseStepType;
-
-import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_ACTION_REGEX;
-import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_BROWSER_LINK;
-import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_ELEMENT_INPUT_VALUE;
-import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_ELEMENT_LOCATOR_INDEX;
-import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_ELEMENT_LOCATOR_TYPE;
-import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_ELEMENT_LOCATOR_VALUE;
-import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_EXCLUDE_REGEX;
-import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_EXECUTION_ID;
-import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_INCLUDE_REGEX;
-import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_LOG_FILE;
-import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_LOG_FILE_LOCATION;
-import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_LOG_READ_ASSERT_VALUE;
-import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_REGEX_GROUP_INDEX_NUMBER;
-import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_STRING_CACHE_MAP;
-import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_STRING_CACHE_MAP_KEY;
-import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_STRING_CACHE_MAP_VALUE;
-import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_TEMP_LOG_FILE_LOCATION;
-import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_TEMP_LOG_FILE_NAME;
-import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_WAIT_TIME;
-import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_WEB_DRIVER_CACHE_NAME;
-import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_WEB_DRIVER_TYPE;
 
 public class TestCaseStepActualAndExpectedResultManager {
 
@@ -241,23 +221,87 @@ public class TestCaseStepActualAndExpectedResultManager {
                                 "at elementLocatorIndex: {" + TCS_RESULT_ELEMENT_LOCATOR_INDEX + "} " +
                                 "using webDriverCacheName: {" + TCS_RESULT_WEB_DRIVER_CACHE_NAME + "}.";
                 break;
+            case W_ELEMENT_VALUE_READ:
+                passActualResultTemplate =
+                        "Element value read completed successfully. " +
+                                "webDriverCacheName: {" + TCS_RESULT_WEB_DRIVER_CACHE_NAME + "}, " +
+                                "elementLocatorType: {" + TCS_RESULT_ELEMENT_LOCATOR_TYPE + "}, " +
+                                "elementLocatorValue: {" + TCS_RESULT_ELEMENT_LOCATOR_VALUE + "}, " +
+                                "elementLocatorIndex: {" + TCS_RESULT_ELEMENT_LOCATOR_INDEX + "}, " +
+                                "cacheKey: {" + TCS_RESULT_STRING_CACHE_MAP_KEY + "}, " +
+                                "readValue: {" + TCS_RESULT_STRING_CACHE_MAP_VALUE + "}.";
+                failActualResultTemplate =
+                        "Failed to read element value. " +
+                                "webDriverCacheName: {" + TCS_RESULT_WEB_DRIVER_CACHE_NAME + "}, " +
+                                "elementLocatorType: {" + TCS_RESULT_ELEMENT_LOCATOR_TYPE + "}, " +
+                                "elementLocatorValue: {" + TCS_RESULT_ELEMENT_LOCATOR_VALUE + "}, " +
+                                "elementLocatorIndex: {" + TCS_RESULT_ELEMENT_LOCATOR_INDEX + "}, " +
+                                "cacheKey: {" + TCS_RESULT_STRING_CACHE_MAP_KEY + "}.";
+                expectedResultTemplate =
+                        "System should read the element value from the element identified by " +
+                                "elementLocatorType: {" + TCS_RESULT_ELEMENT_LOCATOR_TYPE + "}, " +
+                                "elementLocatorValue: {" + TCS_RESULT_ELEMENT_LOCATOR_VALUE + "}, " +
+                                "elementLocatorIndex: {" + TCS_RESULT_ELEMENT_LOCATOR_INDEX + "} " +
+                                "using webDriverCacheName: {" + TCS_RESULT_WEB_DRIVER_CACHE_NAME + "}, " +
+                                "and save the extracted value into cacheKey: {" + TCS_RESULT_STRING_CACHE_MAP_KEY + "}.";
+                break;
+        case W_ELEMENT_CSS_ATTRIBUTE_READ_VERIFY:
+            passActualResultTemplate =
+                    "Rendered CSS attribute verification completed successfully. " +
+                            "webDriverCacheName: {" + TCS_RESULT_WEB_DRIVER_CACHE_NAME + "}, " +
+                            "elementIndex: {" + TCS_RESULT_ELEMENT_INDEX + "}, " +
+                            "cssAttributeName: {" + TCS_RESULT_CSS_ATTRIBUTE_NAME + "}, " +
+                            "cssExpectedValue: {" + TCS_RESULT_CSS_EXPECTED_VALUE + "}, " +
+                            "elementHtmlCode: {" + TCS_RESULT_ELEMENT_HTML_CODE + "}.";
+            failActualResultTemplate =
+                    "Rendered CSS attribute verification failed. " +
+                            "webDriverCacheName: {" + TCS_RESULT_WEB_DRIVER_CACHE_NAME + "}, " +
+                            "elementIndex: {" + TCS_RESULT_ELEMENT_INDEX + "}, " +
+                            "cssAttributeName: {" + TCS_RESULT_CSS_ATTRIBUTE_NAME + "}, " +
+                            "cssExpectedValue: {" + TCS_RESULT_CSS_EXPECTED_VALUE + "}, " +
+                            "cssActualRenderedValue: {" + TCS_RESULT_CSS_ACTUAL_VALUE + "}, " +
+                            "unmatchedReason: {" + TCS_RESULT_CSS_EXPECTED_VALUE_UNMATCHED_REASON + "}, " +
+                            "elementHtmlCode: {" + TCS_RESULT_ELEMENT_HTML_CODE + "}.";
+            expectedResultTemplate =
+                    "System should verify the rendered CSS attribute value for the element identified by " +
+                            "elementHtmlCode: {" + TCS_RESULT_ELEMENT_HTML_CODE + "} " +
+                            "at elementIndex: {" + TCS_RESULT_ELEMENT_INDEX + "} " +
+                            "using webDriverCacheName: {" + TCS_RESULT_WEB_DRIVER_CACHE_NAME + "}. " +
+                            "Rendered value of cssAttributeName: {" + TCS_RESULT_CSS_ATTRIBUTE_NAME + "} " +
+                            "should match cssExpectedValue: {" + TCS_RESULT_CSS_EXPECTED_VALUE + "}.";
+            break;
             case W_ELEMENT_CLICK:
                 passActualResultTemplate =
                         "Element click completed successfully. " +
                                 "webDriverCacheName: {" + TCS_RESULT_WEB_DRIVER_CACHE_NAME + "}, " +
-                                "elementLocatorType: {" + TCS_RESULT_ELEMENT_LOCATOR_TYPE + "}, " +
-                                "elementLocatorValue: {" + TCS_RESULT_ELEMENT_LOCATOR_VALUE + "}, " +
-                                "elementLocatorIndex: {" + TCS_RESULT_ELEMENT_LOCATOR_INDEX + "}.";
+                                "elementIndex: {" + TCS_RESULT_ELEMENT_INDEX + "}, " +
+                                "elementHtmlCode: {" + TCS_RESULT_ELEMENT_HTML_CODE + "}.";
                 failActualResultTemplate =
                         "Failed to click the element. " +
                                 "webDriverCacheName: {" + TCS_RESULT_WEB_DRIVER_CACHE_NAME + "}, " +
-                                "elementLocatorType: {" + TCS_RESULT_ELEMENT_LOCATOR_TYPE + "}, " +
-                                "elementLocatorValue: {" + TCS_RESULT_ELEMENT_LOCATOR_VALUE + "}, " +
-                                "elementLocatorIndex: {" + TCS_RESULT_ELEMENT_LOCATOR_INDEX + "}.";
+                                "elementIndex: {" + TCS_RESULT_ELEMENT_INDEX + "}, " +
+                                "elementHtmlCode: {" + TCS_RESULT_ELEMENT_HTML_CODE + "}.";
                 expectedResultTemplate =
-                        "System should click the element identified by elementLocatorType: {" + TCS_RESULT_ELEMENT_LOCATOR_TYPE + "} " +
-                                "and elementLocatorValue: {" + TCS_RESULT_ELEMENT_LOCATOR_VALUE + "} " +
-                                "at elementLocatorIndex: {" + TCS_RESULT_ELEMENT_LOCATOR_INDEX + "} " +
+                        "System should click the element identified by elementHtmlCode: {"
+                                + TCS_RESULT_ELEMENT_HTML_CODE + "} " +
+                                "at elementIndex: {" + TCS_RESULT_ELEMENT_INDEX + "} " +
+                                "using webDriverCacheName: {" + TCS_RESULT_WEB_DRIVER_CACHE_NAME + "}.";
+                break;
+            case W_MOUSE_HOVER:
+                passActualResultTemplate =
+                        "Mouse hover completed successfully. " +
+                                "webDriverCacheName: {" + TCS_RESULT_WEB_DRIVER_CACHE_NAME + "}, " +
+                                "elementIndex: {" + TCS_RESULT_ELEMENT_INDEX + "}, " +
+                                "elementHtmlCode: {" + TCS_RESULT_ELEMENT_HTML_CODE + "}.";
+                failActualResultTemplate =
+                        "Failed to mouse hover on the element. " +
+                                "webDriverCacheName: {" + TCS_RESULT_WEB_DRIVER_CACHE_NAME + "}, " +
+                                "elementIndex: {" + TCS_RESULT_ELEMENT_INDEX + "}, " +
+                                "elementHtmlCode: {" + TCS_RESULT_ELEMENT_HTML_CODE + "}.";
+                expectedResultTemplate =
+                        "System should mouse hover on the element identified by elementHtmlCode: {"
+                                + TCS_RESULT_ELEMENT_HTML_CODE + "} " +
+                                "at elementIndex: {" + TCS_RESULT_ELEMENT_INDEX + "} " +
                                 "using webDriverCacheName: {" + TCS_RESULT_WEB_DRIVER_CACHE_NAME + "}.";
                 break;
             case M_OPEN_APP:

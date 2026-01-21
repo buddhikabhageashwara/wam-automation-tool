@@ -102,7 +102,8 @@ public final class AppConstant {
 
   public static final class TestCaseStepAssertParameterTypeConstant {
 
-    public static final String TCS_ASSERT_PARAMETER_TYPE_LOG_READ = "logRead";
+    public static final String TCS_ASSERT_PARAMETER_TYPE_LOG_READ = "logReadAssertValue";
+    public static final String TCS_ASSERT_PARAMETER_TYPE_CACHE_ITEM_READ = "cacheItemReadAssertValue";
 
     private TestCaseStepAssertParameterTypeConstant() {
       throw new IllegalStateException(UTILITY_CLASS);
@@ -127,12 +128,23 @@ public final class AppConstant {
     public static final String TCS_RESULT_ACTION_REGEX = "actionRegex";
     public static final String TCS_RESULT_REGEX_GROUP_INDEX_NUMBER = "regexGroupIndexNumber";
     public static final String TCS_RESULT_LOG_READ_ASSERT_VALUE = "logReadAssertValue";
+    public static final String TCS_RESULT_INVERT_RESULT = "invertResult";
     public static final String TCS_RESULT_ELEMENT_LOCATOR_TYPE = "elementLocatorType";
     public static final String TCS_RESULT_ELEMENT_LOCATOR_VALUE = "elementLocatorValue";
     public static final String TCS_RESULT_ELEMENT_LOCATOR_INDEX = "elementLocatorIndex";
     public static final String TCS_RESULT_ELEMENT_INPUT_VALUE = "elementInputValue";
     public static final String TCS_RESULT_ELEMENT_INPUT_VALUE_CACHE_KEY = "elementInputValueCacheKey";
     public static final String TCS_RESULT_ELEMENT_INPUT_CACHE_VALUE = "elementInputCacheValue";
+    public static final String TCS_RESULT_CACHE_VALUE_EXPECTED_VALUE = "cacheValueExpectedValue";
+    public static final String TCS_RESULT_CSV_FILE_PATH_TO_SAVE = "csvFilePathToSave";
+    public static final String TCS_RESULT_ONLY_INTERACTIVE = "onlyInteractive";
+    public static final String TCS_RESULT_INCLUDE_CSS_SELECTOR = "includeCssSelector";
+    public static final String TCS_RESULT_ELEMENT_HTML_CODE = "elementHTMLCode";
+    public static final String TCS_RESULT_ELEMENT_INDEX = "elementIndex";
+    public static final String TCS_RESULT_CSS_ATTRIBUTE_NAME = "cssAttributeName";
+    public static final String TCS_RESULT_CSS_EXPECTED_VALUE = "cssExpectedValue";
+    public static final String TCS_RESULT_CSS_EXPECTED_VALUE_UNMATCHED_REASON = "cssExpectedValueUnmatchedReason";
+    public static final String TCS_RESULT_CSS_ACTUAL_VALUE = "cssActualValue";
 
     private TestCaseStepResultConstant() {
       throw new IllegalStateException(UTILITY_CLASS);

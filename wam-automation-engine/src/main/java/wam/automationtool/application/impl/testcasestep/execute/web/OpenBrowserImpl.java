@@ -174,7 +174,8 @@ public class OpenBrowserImpl extends TestCaseStepExecutorBase implements TestCas
 
   private void openBrowser(final WebDriver driver, final String browserLink) {
     if (browserLink != null && !browserLink.isEmpty()) {
-      driver.get(browserLink);
+        driver.manage().window().maximize();
+        driver.get(browserLink);
     } else {
       throw new TestCaseStepExecutionFailException(
           BAD_REQUEST, TEST_CASE_STEP_EXECUTION_FAIL_CODE, "browserLink is empty");

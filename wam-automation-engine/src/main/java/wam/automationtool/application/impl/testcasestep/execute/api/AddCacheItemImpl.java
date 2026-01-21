@@ -29,10 +29,8 @@ import static wam.automationtool.application.config.AppConstant.TestCaseStepResu
 import static wam.automationtool.application.config.pre.action.seed.TestCaseStepPreferenceParameterType.TCS_PREFERENCE_PARAMETER_TYPE_STRING_TYPE_CACHE_ITEM_KEY;
 import static wam.automationtool.application.config.pre.action.seed.TestCaseStepPreferenceParameterType.TCS_PREFERENCE_PARAMETER_TYPE_STRING_TYPE_CACHE_ITEM_VALUE;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -102,7 +100,11 @@ public class AddCacheItemImpl extends TestCaseStepExecutorBase implements TestCa
     final String executionId = getExecutionId(testCaseStepExecuteRequestDto);
     final CacheDataDto cacheDataDto = getCacheDataDto(executionId);
     final Map<String, String> updatedStringCacheMap =
-        buildUpdatedStringCacheMap(cacheDataDto, extractedPreferenceParameters);
+        buildUpdatedStringCacheMap(
+                cacheDataDto, extractedPreferenceParameters.get(
+                        TCS_PREFERENCE_PARAMETER_TYPE_STRING_TYPE_CACHE_ITEM_KEY.getParameterName()),
+                extractedPreferenceParameters.get(
+                        TCS_PREFERENCE_PARAMETER_TYPE_STRING_TYPE_CACHE_ITEM_VALUE.getParameterName()));
     persistCache(executionId, cacheDataDto, updatedStringCacheMap);
   }
 
@@ -150,10 +152,12 @@ public class AddCacheItemImpl extends TestCaseStepExecutorBase implements TestCa
       final Map<String, String> extractedPreferenceParameters) {
     resultParameters.put(
             TCS_RESULT_STRING_CACHE_MAP_KEY,
-        extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_STRING_TYPE_CACHE_ITEM_KEY.getParameterName()));
+        extractedPreferenceParameters.get(
+                TCS_PREFERENCE_PARAMETER_TYPE_STRING_TYPE_CACHE_ITEM_KEY.getParameterName()));
     resultParameters.put(
             TCS_RESULT_STRING_CACHE_MAP_VALUE,
-        extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_STRING_TYPE_CACHE_ITEM_VALUE.getParameterName()));
+        extractedPreferenceParameters.get(
+                TCS_PREFERENCE_PARAMETER_TYPE_STRING_TYPE_CACHE_ITEM_VALUE.getParameterName()));
   }
 
   /**
@@ -166,40 +170,5 @@ public class AddCacheItemImpl extends TestCaseStepExecutorBase implements TestCa
     final String executionId = testCaseStepExecuteRequestDto.getExecutionId();
     log.debug("Execution id resolved: {}", executionId);
     return executionId;
-  }
-
-  /**
-   * Builds the updated string cache map by reading the existing map (or initializing if needed) and
-   * inserting the extracted key/value.
-   *
-   * @param cacheDataDto cache data DTO
-   * @param extractedPreferenceParameters extracted preference parameters
-   * @return updated string cache map
-   */
-  private Map<String, String> buildUpdatedStringCacheMap(
-      final CacheDataDto cacheDataDto, final Map<String, String> extractedPreferenceParameters) {
-    Map<String, String> stringCacheMap = cacheDataDto.getStringCacheMap();
-    if (Objects.isNull(stringCacheMap) || stringCacheMap.isEmpty()) {
-      stringCacheMap = new HashMap<>();
-    }
-    stringCacheMap.put(
-        extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_STRING_TYPE_CACHE_ITEM_KEY.getParameterName()),
-        extractedPreferenceParameters.get(TCS_PREFERENCE_PARAMETER_TYPE_STRING_TYPE_CACHE_ITEM_VALUE.getParameterName()));
-    return stringCacheMap;
-  }
-
-  /**
-   * Persists the updated cache data into WAM cache.
-   *
-   * @param executionId execution id
-   * @param cacheDataDto cache data DTO
-   * @param updatedStringCacheMap updated string cache map
-   */
-  private void persistCache(
-      final String executionId,
-      final CacheDataDto cacheDataDto,
-      final Map<String, String> updatedStringCacheMap) {
-    cacheDataDto.setStringCacheMap(updatedStringCacheMap);
-    getWamCacheManager().addToCache(executionId, cacheDataDto);
   }
 }

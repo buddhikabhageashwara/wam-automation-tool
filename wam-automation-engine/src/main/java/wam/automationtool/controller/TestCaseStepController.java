@@ -38,10 +38,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import wam.automationtool.application.dto.testcasestep.TestCaseStepAddRequestDto;
-import wam.automationtool.application.dto.testcasestep.TestCaseStepResponseDto;
-import wam.automationtool.application.dto.testcasestep.TestCaseStepUpdateRequestDto;
-import wam.automationtool.application.dto.testcasestep.TestCaseStepsResponseDto;
+import wam.automationtool.application.dto.testcasestep.*;
 import wam.automationtool.application.impl.testcasestep.TestCaseStepService;
 
 @RestController
@@ -55,6 +52,13 @@ public final class TestCaseStepController {
   public ResponseEntity<Void> addTestCaseStep(
       @RequestBody @Valid final TestCaseStepAddRequestDto testCaseStepAddRequestDto) {
     testCaseStepService.addTestCaseStep(testCaseStepAddRequestDto);
+    return ResponseEntity.status(HttpStatus.CREATED).build();
+  }
+
+  @PostMapping("/bulk")
+  public ResponseEntity<Void> addTestCaseStepsInBulk(
+      @RequestBody @Valid final BulkTestCaseStepsAddRequestDto bulkTestCaseStepsAddRequestDto) {
+    testCaseStepService.addTestCaseStepsInBulk(bulkTestCaseStepsAddRequestDto);
     return ResponseEntity.status(HttpStatus.CREATED).build();
   }
 

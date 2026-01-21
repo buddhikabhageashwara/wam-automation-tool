@@ -27,6 +27,7 @@ package wam.automationtool.application.impl.testcasestep.execute;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static wam.automationtool.application.config.AppConstant.AuthConstants.TEST_CASE_STEP_EXECUTION_FAIL_CODE;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -421,4 +422,39 @@ public abstract class TestCaseStepExecutorBase {
         throw new IllegalArgumentException("unsupported locatorType");
     }
   }
+
+    /**
+     * Builds the updated string cache map by reading the existing map (or initializing if needed) and
+     * inserting the extracted key/value.
+     *
+     * @param cacheDataDto cache data DTO
+     * @return updated string cache map
+     */
+    public Map<String, String> buildUpdatedStringCacheMap(
+            final CacheDataDto cacheDataDto,
+            final String key, final String value) {
+        Map<String, String> stringCacheMap = cacheDataDto.getStringCacheMap();
+        if (Objects.isNull(stringCacheMap) || stringCacheMap.isEmpty()) {
+            stringCacheMap = new HashMap<>();
+        }
+        stringCacheMap.put(
+                key,
+                value);
+        return stringCacheMap;
+    }
+
+    /**
+     * Persists the updated cache data into WAM cache.
+     *
+     * @param executionId execution id
+     * @param cacheDataDto cache data DTO
+     * @param updatedStringCacheMap updated string cache map
+     */
+    public void persistCache(
+            final String executionId,
+            final CacheDataDto cacheDataDto,
+            final Map<String, String> updatedStringCacheMap) {
+        cacheDataDto.setStringCacheMap(updatedStringCacheMap);
+        getWamCacheManager().addToCache(executionId, cacheDataDto);
+    }
 }

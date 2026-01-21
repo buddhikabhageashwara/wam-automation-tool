@@ -39,11 +39,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import wam.automationtool.application.dto.testcasestep.TestCaseStepAddRequestDto;
-import wam.automationtool.application.dto.testcasestep.TestCaseStepDto;
-import wam.automationtool.application.dto.testcasestep.TestCaseStepResponseDto;
-import wam.automationtool.application.dto.testcasestep.TestCaseStepUpdateRequestDto;
-import wam.automationtool.application.dto.testcasestep.TestCaseStepsResponseDto;
+import wam.automationtool.application.dto.testcasestep.*;
 import wam.automationtool.application.exception.InvalidTestCaseStepTypeException;
 import wam.automationtool.application.exception.PreferenceParameterTypeNotFoundException;
 import wam.automationtool.application.exception.TestCaseNotFoundException;
@@ -99,6 +95,16 @@ public class TestCaseStepImpl extends AuthDetailsProvider implements TestCaseSte
     if (Objects.nonNull(testCaseStepAddRequestDto.getAssertParameters())) {
       addAssertParameters(testCaseStepAddRequestDto, newTestCaseStep);
     }
+  }
+
+  /**
+   * @param bulkTestCaseStepsAddRequestDto
+   */
+  @Override
+  public void addTestCaseStepsInBulk(
+      final BulkTestCaseStepsAddRequestDto bulkTestCaseStepsAddRequestDto) {
+
+
   }
 
   private void checkValidityOfTestCaseStepType(

@@ -47,7 +47,15 @@ public enum TestCaseStepPreferenceParameterType {
     TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_VALUE("Element Locator Value", "elementLocatorValue"),
     TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_INDEX("Element Locator Index", "elementLocatorIndex"),
     TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_INPUT_VALUE("Element Input Value", "elementInputValue"),
-    TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_INPUT_VALUE_CACHE_KEY("Element Input Value Cache Key", "elementInputValueCacheKey");
+    TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_INPUT_VALUE_CACHE_KEY("Element Input Value Cache Key", "elementInputValueCacheKey"),
+    TCS_PREFERENCE_PARAMETER_TYPE_EXPECTED_STRING_TYPE_CACHE_ITEM_VALUE("Expected String Type Cache Item Value", "expectedStringCacheMapValue"),
+    TCS_PREFERENCE_PARAMETER_TYPE_CSV_SAVE_LOCATION("CSV Save Location", "csvSaveLocation"),
+    TCS_PREFERENCE_PARAMETER_TYPE_ONLY_INTERACTIVE("Only Interactive", "onlyInteractive"),
+    TCS_PREFERENCE_PARAMETER_TYPE_INCLUDE_CSS_SELECTOR("Include CSS Selector", "includeCssSelector"),
+    TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_HTML_CODE("Element HTML Code", "elementHTMLCode"),
+    TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_INDEX("Element Index", "elementIndex"),
+    TCS_PREFERENCE_PARAMETER_TYPE_CSS_ATTRIBUTE_NAME("CSS Attribute Name", "cssAttributeName"),
+    TCS_PREFERENCE_PARAMETER_TYPE_CSS_EXPECTED_VALUE("CSS Expected Value", "cssExpectedValue");
 
     private final String displayName;
     private final String parameterName;

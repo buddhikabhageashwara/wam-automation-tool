@@ -39,6 +39,7 @@ import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import wam.automationtool.application.config.pre.action.seed.TestCaseStepPreferenceParameterType;
@@ -56,14 +57,14 @@ import wam.automationtool.domain.entity.testcasestep.TestCaseStepType;
 
 @Service
 @Slf4j
-public class ElementClickImpl extends TestCaseStepExecutorBase implements TestCaseStepExecutor {
+public class MouseHoverImpl extends TestCaseStepExecutorBase implements TestCaseStepExecutor {
 
   @Value("${selenium.grid.base.url}")
   private String seleniumGridBaseURL;
 
   @Override
   public TestCaseStepType getTestCaseStepType() {
-    return TestCaseStepType.W_ELEMENT_CLICK;
+    return TestCaseStepType.W_MOUSE_HOVER;
   }
 
   @Override
@@ -141,17 +142,18 @@ public class ElementClickImpl extends TestCaseStepExecutorBase implements TestCa
     final String extractedXPath =
         AutoLocatorDetector.selfHealXPathByHtml(webDriver, elementHTMLCode, elementIndex);
 
-    clickElement(webDriver, extractedXPath, elementIndex);
+    mouseHover(webDriver, extractedXPath, elementIndex);
   }
 
-  private void clickElement(
+  private void mouseHover(
       final WebDriver webDriver, final String extractedXPath, final int elementIndex) {
     if (Objects.nonNull(webDriver)) {
       final WebElement webElement = getWebElement(webDriver, "xpath", extractedXPath, elementIndex);
-      webElement.click();
+        final Actions actions = new Actions(webDriver);
+        actions.moveToElement(webElement).perform();
     } else {
       throw new TestCaseStepExecutionFailException(
-          BAD_REQUEST, TEST_CASE_STEP_EXECUTION_FAIL_CODE, "driver not found to click element");
+          BAD_REQUEST, TEST_CASE_STEP_EXECUTION_FAIL_CODE, "mouse hover failed");
     }
   }
 }
