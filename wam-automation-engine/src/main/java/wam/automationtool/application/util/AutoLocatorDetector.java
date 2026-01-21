@@ -469,74 +469,82 @@ public final class AutoLocatorDetector {
     final JavascriptExecutor js = (JavascriptExecutor) driver;
 
     // We do wildcard matching in JS for speed and accuracy against DOM text.
-      final Object res =
-              js.executeScript(
-                      "var tag = arguments[0];"
-                              + "var attrs = arguments[1] || {};"
-                              + "var classTokens = arguments[2] || [];"
-                              + "var pattern = arguments[3] || '';"
-                              + "var IGNORE = arguments[4] || '';"
+    final Object res =
+        js.executeScript(
+            "var tag = arguments[0];"
+                + "var attrs = arguments[1] || {};"
+                + "var classTokens = arguments[2] || [];"
+                + "var pattern = arguments[3] || '';"
+                + "var IGNORE = arguments[4] || '';"
+                + "var nodeList = document.querySelectorAll(tag);"
+                + "var els = [];"
+                + "for (var i = 0; i < nodeList.length; i++) els.push(nodeList[i]);"
+                + "function splitWs(s){"
+                + "  return (s || '').split(/\\s+/);"
+                + "}"
+                + "function hasAllClasses(el, tokens){"
+                + "  if (!tokens || tokens.length === 0) return true;"
+                + "  var cls = splitWs(el.getAttribute('class'));"
+                + "  for (var i = 0; i < tokens.length; i++){"
+                + "    if (cls.indexOf(tokens[i]) === -1) return false;"
+                + "  }"
+                + "  return true;"
+                + "}"
+                + "function visibleText(el){"
+                + "  var t = (el.innerText || el.textContent || '');"
+                + "  return ('' + t).replace(/\\s+/g, ' ').replace(/^\\s+|\\s+$/g, '');"
+                + "}"
+                + "function matchText(actual, pattern){"
+                + "  if (!pattern || pattern.length === 0) return true;"
+                + "  if (pattern.indexOf(IGNORE) === -1) return actual === pattern;"
+                + "  var parts = pattern.split(IGNORE);"
+                + "  var hasNonEmpty = false;"
+                + "  for (var i = 0; i < parts.length; i++){"
+                + "    if (parts[i] && parts[i].length > 0){ hasNonEmpty = true; break; }"
+                + "  }"
+                + "  if (!hasNonEmpty) return true;"
+                + "  if (parts[0] && parts[0].length > 0){"
+                + "    if (actual.indexOf(parts[0]) !== 0) return false;"
+                + "  }"
+                + "  var pos = (parts[0] && parts[0].length > 0) ? parts[0].length : 0;"
+                + "  for (var j = 1; j < parts.length; j++){"
+                + "    var seg = parts[j] || '';"
+                + "    if (seg.length === 0) continue;"
+                + "    var idx = actual.indexOf(seg, pos);"
+                + "    if (idx === -1) return false;"
+                + "    pos = idx + seg.length;"
+                + "  }"
+                + "  var last = parts[parts.length - 1] || '';"
+                + "  if (last.length > 0){"
+                + "    var endPos = actual.length - last.length;"
+                + "    if (endPos < 0) return false;"
+                + "    if (actual.lastIndexOf(last) !== endPos) return false;"
+                + "  }"
+                + "  return true;"
+                + "}"
+                + "var out = [];"
+                + "for (var e = 0; e < els.length; e++){"
+                + "  var el = els[e];"
+                + "  for (var k in attrs){"
+                + "    if (!Object.prototype.hasOwnProperty.call(attrs, k)) continue;"
+                + "    var expected = attrs[k];"
+                + "    var actual = el.getAttribute(k) || '';"
+                + "    if (actual !== expected){ el = null; break; }"
+                + "  }"
+                + "  if (!el) continue;"
+                + "  if (!hasAllClasses(el, classTokens)) continue;"
+                + "  var text = visibleText(el);"
+                + "  if (!matchText(text, pattern)) continue;"
+                + "  out.push(el);"
+                + "}"
+                + "return out;",
+            sig.tag,
+            sig.attrs,
+            sig.stableClassTokens,
+            sig.visibleTextPattern,
+            IGNORE_TOKEN);
 
-                              + "var nodeList = document.querySelectorAll(tag);"
-                              + "var els = [];"
-                              + "for (var i = 0; i < nodeList.length; i++) els.push(nodeList[i]);"
-
-                              + "function splitWs(s){"
-                              + "  return (s || '').split(/\\s+/);"
-                              + "}"
-                              + "function hasAllClasses(el, tokens){"
-                              + "  if (!tokens || tokens.length === 0) return true;"
-                              + "  var cls = splitWs(el.getAttribute('class'));"
-                              + "  for (var i = 0; i < tokens.length; i++){"
-                              + "    if (cls.indexOf(tokens[i]) === -1) return false;"
-                              + "  }"
-                              + "  return true;"
-                              + "}"
-                              + "function visibleText(el){"
-                              + "  var t = (el.innerText || el.textContent || '');"
-                              + "  return ('' + t).replace(/^\\s+|\\s+$/g, '');"
-                              + "}"
-                              + "function matchText(actual, pattern){"
-                              + "  if (!pattern || pattern.length === 0) return true;"
-                              + "  if (pattern.indexOf(IGNORE) === -1) return actual === pattern;"
-                              + "  var parts = pattern.split(IGNORE);"
-                              + "  var prefix = parts[0] || '';"
-                              + "  var suffix = (parts.length > 1) ? parts[1] : '';"
-                              + "  if (prefix && actual.indexOf(prefix) !== 0) return false;"
-                              + "  if (suffix) {"
-                              + "    var pos = actual.length - suffix.length;"
-                              + "    if (pos < 0) return false;"
-                              + "    if (actual.lastIndexOf(suffix) !== pos) return false;"
-                              + "  }"
-                              + "  if (prefix && suffix && actual.length < (prefix.length + suffix.length)) return false;"
-                              + "  return true;"
-                              + "}"
-
-                              + "var out = [];"
-                              + "for (var e = 0; e < els.length; e++){"
-                              + "  var el = els[e];"
-
-                              + "  for (var k in attrs){"
-                              + "    if (!Object.prototype.hasOwnProperty.call(attrs, k)) continue;"
-                              + "    var expected = attrs[k];"
-                              + "    var actual = el.getAttribute(k) || '';"
-                              + "    if (actual !== expected){ el = null; break; }"
-                              + "  }"
-                              + "  if (!el) continue;"
-
-                              + "  if (!hasAllClasses(el, classTokens)) continue;"
-                              + "  var text = visibleText(el);"
-                              + "  if (!matchText(text, pattern)) continue;"
-                              + "  out.push(el);"
-                              + "}"
-                              + "return out;",
-                      sig.tag,
-                      sig.attrs,
-                      sig.stableClassTokens,
-                      sig.visibleTextPattern,
-                      IGNORE_TOKEN);
-
-      if (res instanceof List<?>) {
+    if (res instanceof List<?>) {
       return (List<WebElement>) res;
     }
     return Collections.emptyList();
