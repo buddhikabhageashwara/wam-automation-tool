@@ -260,26 +260,26 @@ public class ReportGeneratorUtil {
     }
   }
 
-  public static void appendTestCaseStepDetails(
-      final String fileName, final TestCaseStepExecutionDto testCaseStepExecutionDto) {
-    try {
-      try (final BufferedWriter writer = new BufferedWriter(new FileWriter(fileName, true))) {
-        writer.write("<tr>\n<td>" + testCaseStepExecutionDto.getStartTime() + "</td>\n");
-        writer.write("<td>" + testCaseStepExecutionDto.getEndTime() + "</td>\n");
-        writer.write("<td>TCS-" + testCaseStepExecutionDto.getId() + "</td>\n");
-        writer.write("<td>" + testCaseStepExecutionDto.getExecutionOrder() + "</td>\n");
-        writer.write("<td>" + testCaseStepExecutionDto.getTestCaseStepType() + "</td>\n");
-        writer.write("<td>" + testCaseStepExecutionDto.getTestCaseStepName() + "</td>\n");
-        writer.write("<td>" + testCaseStepExecutionDto.getExpectedResult() + "</td>\n");
-        writer.write("<td>" + testCaseStepExecutionDto.getActualResult() + "</td>\n");
-        writer.write("<td>" + testCaseStepExecutionDto.getStatus() + "</td>\n</tr>\n");
-      }
-    } catch (final IOException ioException) {
-      log.error("An error occurred: {}", ioException.getMessage());
+    public static void appendTestCaseStepDetails(
+            final String fileName, final TestCaseStepExecutionDto testCaseStepExecutionDto) {
+        try {
+            try (final BufferedWriter writer = new BufferedWriter(new FileWriter(fileName, true))) {
+                writer.write("<tr>\n<td>" + testCaseStepExecutionDto.getStartTime() + "</td>\n");
+                writer.write("<td>" + testCaseStepExecutionDto.getEndTime() + "</td>\n");
+                writer.write("<td>TCS-" + testCaseStepExecutionDto.getId() + "</td>\n");
+                writer.write("<td>" + testCaseStepExecutionDto.getExecutionOrder() + "</td>\n");
+                writer.write("<td>" + testCaseStepExecutionDto.getTestCaseStepType() + "</td>\n");
+                writer.write("<td>" + testCaseStepExecutionDto.getTestCaseStepName() + "</td>\n");
+                writer.write("<td>" + escapeHtml(testCaseStepExecutionDto.getExpectedResult()) + "</td>\n");
+                writer.write("<td>" + escapeHtml(testCaseStepExecutionDto.getActualResult()) + "</td>\n");
+                writer.write("<td>" + testCaseStepExecutionDto.getStatus() + "</td>\n</tr>\n");
+            }
+        } catch (final IOException ioException) {
+            log.error("An error occurred: {}", ioException.getMessage());
+        }
     }
-  }
 
-  public static void endTestCaseStepDetailsTable(final String fileName) {
+    public static void endTestCaseStepDetailsTable(final String fileName) {
     try {
       try (final BufferedWriter writer = new BufferedWriter(new FileWriter(fileName, true))) {
         writer.write("</tbody>\n</table>\n</div>\n</section>\n");
