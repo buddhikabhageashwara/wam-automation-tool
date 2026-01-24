@@ -230,7 +230,7 @@ public final class RenderedCssChecker {
       }
 
       // 3) Colors: normalize both sides to HEX and compare
-      if (isColorAttribute(attr) || looksLikeColor(expectedRaw) || looksLikeColor(actualRendered)) {
+      if (isColorAttribute(attr) || looksLikeColor(expectedRaw)) {
         final String actualHex = normalizeToHex(actualRendered);
         final String expectedHex = normalizeToHex(expectedRaw);
 
@@ -380,11 +380,7 @@ public final class RenderedCssChecker {
 
   private static boolean looksLikeColor(final String v) {
     final String s = safe(v).toLowerCase(Locale.ROOT);
-    return s.startsWith("#")
-        || s.matches("^[0-9a-f]{3}$")
-        || s.matches("^[0-9a-f]{6}$")
-        || s.startsWith("rgb(")
-        || s.startsWith("rgba(");
+    return s.startsWith("#") || s.startsWith("rgb(") || s.startsWith("rgba(");
   }
 
   // Normalize HEX or RGB(A) -> "#RRGGBB" (alpha ignored)

@@ -262,7 +262,11 @@ public final class AutoLocatorDetector {
     Objects.requireNonNull(driver, "driver");
     Objects.requireNonNull(elementHtml, "elementHtml");
 
-    final String htmlTrim = elementHtml.trim();
+    // Normalize Chrome "Copy element" HTML to reduce noisy mismatches,
+    // while still always treating the FIRST/OUTER element as the target.
+    final String normalizedHtml = normalizeCopiedHtml(elementHtml);
+
+    final String htmlTrim = normalizedHtml.trim();
     log.info(
         "START | indexToPick={} | elementHtmlLength={} | elementHtmlPreview={}",
         indexToPick,
@@ -275,17 +279,17 @@ public final class AutoLocatorDetector {
 
     final JavascriptExecutor js = (JavascriptExecutor) driver;
 
-    // 1) Parse signature from HTML snippet
+    // 1) Parse signature from normalized HTML snippet (outer-first element is always the target)
     final HtmlSignature sig;
     try {
-      sig = HtmlSignature.parse(elementHtml);
+      sig = HtmlSignature.parse(normalizedHtml);
     } catch (final RuntimeException ex) {
       log.error("ERROR | invalid elementHtml snippet", ex);
       throw ex;
     }
 
-    // 2) Find matches in DOM (live search)
-    final List<WebElement> matches = findElementsByHtmlSignature(driver, sig);
+    // 2) Find matches in DOM (live search) with safe fallback levels
+    final List<WebElement> matches = findElementsByHtmlSignatureWithFallback(driver, sig);
 
     if (matches.isEmpty()) {
       log.warn(
@@ -479,9 +483,7 @@ public final class AutoLocatorDetector {
                 + "var nodeList = document.querySelectorAll(tag);"
                 + "var els = [];"
                 + "for (var i = 0; i < nodeList.length; i++) els.push(nodeList[i]);"
-                + "function splitWs(s){"
-                + "  return (s || '').split(/\\s+/);"
-                + "}"
+                + "function splitWs(s){ return (s || '').split(/\\s+/).filter(Boolean); }"
                 + "function hasAllClasses(el, tokens){"
                 + "  if (!tokens || tokens.length === 0) return true;"
                 + "  var cls = splitWs(el.getAttribute('class'));"
@@ -489,6 +491,15 @@ public final class AutoLocatorDetector {
                 + "    if (cls.indexOf(tokens[i]) === -1) return false;"
                 + "  }"
                 + "  return true;"
+                + "}"
+                + "function countMatchedClasses(el, tokens){"
+                + "  if (!tokens || tokens.length === 0) return 0;"
+                + "  var cls = splitWs(el.getAttribute('class'));"
+                + "  var c = 0;"
+                + "  for (var i = 0; i < tokens.length; i++){"
+                + "    if (cls.indexOf(tokens[i]) !== -1) c++;"
+                + "  }"
+                + "  return c;"
                 + "}"
                 + "function visibleText(el){"
                 + "  var t = (el.innerText || el.textContent || '');"
@@ -522,7 +533,28 @@ public final class AutoLocatorDetector {
                 + "  }"
                 + "  return true;"
                 + "}"
-                + "var out = [];"
+                + "function hasSelectedOptionAncestor(el){"
+                + "  var p = el;"
+                + "  while (p){"
+                + "    if (p.getAttribute && p.getAttribute('role') === 'option' && p.getAttribute('aria-selected') === 'true') return true;"
+                + "    p = p.parentElement;"
+                + "  }"
+                + "  return false;"
+                + "}"
+                + "function hasAncestorWithClass(el, clsName){"
+                + "  var p = el;"
+                + "  while (p){"
+                + "    if (p.classList && p.classList.contains(clsName)) return true;"
+                + "    p = p.parentElement;"
+                + "  }"
+                + "  return false;"
+                + "}"
+                + "function isVisible(el){"
+                + "  if (!el) return false;"
+                + "  var r = el.getClientRects();"
+                + "  return r && r.length > 0;"
+                + "}"
+                + "var scored = [];"
                 + "for (var e = 0; e < els.length; e++){"
                 + "  var el = els[e];"
                 + "  for (var k in attrs){"
@@ -535,8 +567,20 @@ public final class AutoLocatorDetector {
                 + "  if (!hasAllClasses(el, classTokens)) continue;"
                 + "  var text = visibleText(el);"
                 + "  if (!matchText(text, pattern)) continue;"
-                + "  out.push(el);"
+                + "  if (!isVisible(el)) continue;"
+                + "  var score = 0;"
+                // ✅ MOST IMPORTANT: prefer elements matching MORE of the requested class tokens
+                + "  var cm = countMatchedClasses(el, classTokens);"
+                + "  score += (cm * 20);"
+
+                // ✅ your contextual preferences
+                + "  if (hasSelectedOptionAncestor(el)) score += 100;"
+                + "  if (hasAncestorWithClass(el, 'MuiChip-root')) score += 50;"
+                + "  scored.push({ el: el, score: score });"
                 + "}"
+                + "scored.sort(function(a,b){ return b.score - a.score; });"
+                + "var out = [];"
+                + "for (var i = 0; i < scored.length; i++){ out.push(scored[i].el); }"
                 + "return out;",
             sig.tag,
             sig.attrs,
@@ -941,6 +985,59 @@ public final class AutoLocatorDetector {
 
   private static void addIfNotBlank(final List<String> list, final String value) {
     if (value != null && !value.isBlank()) list.add(value);
+  }
+
+  private static String normalizeCopiedHtml(final String html) {
+    if (html == null) return "";
+    String h = html.trim();
+
+    // remove very noisy attributes from Chrome "Copy element"
+    h = h.replaceAll("\\s+style\\s*=\\s*(['\"]).*?\\1", "");
+    h = h.replaceAll("\\s+srcset\\s*=\\s*(['\"]).*?\\1", "");
+    h = h.replaceAll("\\s+decoding\\s*=\\s*(['\"]).*?\\1", "");
+    h = h.replaceAll("\\s+data-nimg\\s*=\\s*(['\"]).*?\\1", "");
+    h = h.replaceAll("\\s+data-[a-zA-Z0-9_-]+\\s*=\\s*(['\"]).*?\\1", "");
+
+    // normalize whitespace
+    h = h.replaceAll("\\s+", " ").trim();
+    return h;
+  }
+
+  private static List<WebElement> findElementsByHtmlSignatureWithFallback(
+      final WebDriver driver, final HtmlSignature sig) {
+
+    // 1) strict
+    List<WebElement> res = findElementsByHtmlSignature(driver, sig);
+    if (!res.isEmpty()) return res;
+
+    // 2) relax attrs (keep class tokens + text)
+    res =
+        findElementsByHtmlSignature(
+            driver,
+            new HtmlSignature(sig.tag, Map.of(), sig.stableClassTokens, sig.visibleTextPattern));
+    if (!res.isEmpty()) return res;
+
+    // 3) relax text (keep class tokens; sometimes innerText differs)
+    res =
+        findElementsByHtmlSignature(
+            driver, new HtmlSignature(sig.tag, sig.attrs, sig.stableClassTokens, ""));
+    if (!res.isEmpty()) return res;
+
+    // 4) relax attrs + text (still keep class tokens)
+    res =
+        findElementsByHtmlSignature(
+            driver, new HtmlSignature(sig.tag, Map.of(), sig.stableClassTokens, ""));
+    if (!res.isEmpty()) return res;
+
+    // 5) last resort: text-only (only if class tokens are empty)
+    if (sig.stableClassTokens == null || sig.stableClassTokens.isEmpty()) {
+      res =
+          findElementsByHtmlSignature(
+              driver, new HtmlSignature(sig.tag, Map.of(), List.of(), sig.visibleTextPattern));
+      if (!res.isEmpty()) return res;
+    }
+
+    return Collections.emptyList();
   }
 
   /**
