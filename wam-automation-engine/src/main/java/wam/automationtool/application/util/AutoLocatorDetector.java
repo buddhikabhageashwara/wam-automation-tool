@@ -97,8 +97,12 @@ public final class AutoLocatorDetector {
           + "      if (sib.nodeType === 1 && sib.nodeName === el.nodeName) ix++;"
           + "      sib = sib.previousSibling;"
           + "    }"
-          + "    const tagName = el.nodeName.toLowerCase();"
-          + "    parts.unshift(tagName + '[' + ix + ']');"
+          + "    const tag = el.nodeName.toLowerCase();"
+          + "    const isSvg = el.namespaceURI && el.namespaceURI.indexOf('svg') !== -1;"
+          + "    const step = isSvg"
+          + "      ? '*[local-name()=\"' + tag + '\"][' + ix + ']'"
+          + "      : tag + '[' + ix + ']';"
+          + "    parts.unshift(step);"
           + "    el = el.parentNode;"
           + "  }"
           + "  return '/' + parts.join('/');"
@@ -614,8 +618,17 @@ public final class AutoLocatorDetector {
 
     final String token = pickStableTextToken(safeText(el));
     if (!token.isEmpty()) {
-      candidates.add(
-          "//" + tag + "[.//*[contains(normalize-space(), " + xpathLiteral(token) + ")]]");
+      if (isSvgTag(tag)) {
+        candidates.add(
+            "//*[(local-name()="
+                + xpathLiteral(tag)
+                + ") and .//*[contains(normalize-space(), "
+                + xpathLiteral(token)
+                + ")]]");
+      } else {
+        candidates.add(
+            "//" + tag + "[.//*[contains(normalize-space(), " + xpathLiteral(token) + ")]]");
+      }
     }
 
     final String abs = safeJsString(js, ABSOLUTE_XPATH_JS, el);
@@ -661,7 +674,22 @@ public final class AutoLocatorDetector {
 
   private static String byAttrXPath(final String tag, final String attr, final String value) {
     if (value == null || value.isBlank()) return "";
-    return "//" + tag + "[@" + attr + "=" + xpathLiteral(value) + "]";
+
+    final String t = tag == null ? "" : tag.toLowerCase(Locale.ROOT).trim();
+    if (t.isEmpty()) return "";
+
+    // SVG-safe: use local-name()
+    if (isSvgTag(t)) {
+      return "//*[(local-name()="
+          + xpathLiteral(t)
+          + ") and @"
+          + attr
+          + "="
+          + xpathLiteral(value)
+          + "]";
+    }
+
+    return "//" + t + "[@" + attr + "=" + xpathLiteral(value) + "]";
   }
 
   private static SelectorValidationResult buildPreferredCssSelectorValidated(
@@ -1040,6 +1068,33 @@ public final class AutoLocatorDetector {
     return Collections.emptyList();
   }
 
+  private static boolean isSvgTag(final String tag) {
+    if (tag == null) return false;
+    return switch (tag.toLowerCase(Locale.ROOT)) {
+      case "svg",
+          "path",
+          "g",
+          "circle",
+          "rect",
+          "line",
+          "polygon",
+          "polyline",
+          "ellipse",
+          "defs",
+          "use",
+          "symbol",
+          "clippath",
+          "mask",
+          "lineargradient",
+          "radialgradient",
+          "stop",
+          "text",
+          "tspan" ->
+          true;
+      default -> false;
+    };
+  }
+
   /**
    * Signature extracted from a user-provided HTML snippet.
    *
@@ -1084,6 +1139,13 @@ public final class AutoLocatorDetector {
       copyIfPresent(allAttrs, useful, "alt");
       copyIfPresent(allAttrs, useful, "value");
       copyIfPresent(allAttrs, useful, "placeholder");
+
+      copyIfPresent(allAttrs, useful, "aria-hidden");
+      copyIfPresent(allAttrs, useful, "focusable");
+      copyIfPresent(allAttrs, useful, "viewbox"); // note: you lower-case keys
+      copyIfPresent(allAttrs, useful, "width");
+      copyIfPresent(allAttrs, useful, "height");
+      copyIfPresent(allAttrs, useful, "fill");
 
       // Include all data-* attributes
       for (final Map.Entry<String, String> e : allAttrs.entrySet()) {
