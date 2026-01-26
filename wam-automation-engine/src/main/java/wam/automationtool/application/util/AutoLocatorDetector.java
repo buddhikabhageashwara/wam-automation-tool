@@ -266,11 +266,9 @@ public final class AutoLocatorDetector {
     Objects.requireNonNull(driver, "driver");
     Objects.requireNonNull(elementHtml, "elementHtml");
 
-    // Normalize Chrome "Copy element" HTML to reduce noisy mismatches,
-    // while still always treating the FIRST/OUTER element as the target.
     final String normalizedHtml = normalizeCopiedHtml(elementHtml);
-
     final String htmlTrim = normalizedHtml.trim();
+
     log.info(
         "START | indexToPick={} | elementHtmlLength={} | elementHtmlPreview={}",
         indexToPick,
@@ -278,67 +276,186 @@ public final class AutoLocatorDetector {
         htmlTrim.length() <= 180 ? htmlTrim : htmlTrim.substring(0, 180) + "...");
 
     final long start = System.currentTimeMillis();
-
     waitForDomReady(driver);
 
     final JavascriptExecutor js = (JavascriptExecutor) driver;
 
-    // 1) Parse signature from normalized HTML snippet (outer-first element is always the target)
-    final HtmlSignature sig;
-    try {
-      sig = HtmlSignature.parse(normalizedHtml);
-    } catch (final RuntimeException ex) {
-      log.error("ERROR | invalid elementHtml snippet", ex);
-      throw ex;
+    final HtmlSignature sig = HtmlSignature.parse(normalizedHtml);
+
+    // ==========================================================
+    // 🔐 HARD LOCK: ID MUST WIN — NO FALLBACK ALLOWED
+    // ==========================================================
+    final String sigId =
+        sig.attrs == null ? "" : String.valueOf(sig.attrs.getOrDefault("id", "")).trim();
+
+    log.info(
+        "SIGNATURE | tag={} | extractedId='{}' | attrsKeys={}",
+        sig.tag,
+        sigId,
+        sig.attrs == null ? "null" : sig.attrs.keySet());
+
+    if (!sigId.isBlank()) {
+      try {
+        // --- Debug: DOM count in current document ---
+        try {
+          final Object domCount =
+              js.executeScript(
+                  "return document.querySelectorAll('#' + CSS.escape(arguments[0])).length;",
+                  sigId);
+          log.info("DEBUG | domQueryCountById | id={} | count={}", sigId, domCount);
+        } catch (Exception e) {
+          log.warn("DEBUG | domQueryCountById failed | id={}", sigId, e);
+        }
+
+        // --- Debug: iframe count in current document ---
+        try {
+          final Object iframeCount =
+              js.executeScript("return document.querySelectorAll('iframe,frame').length;");
+          log.info("DEBUG | iframeCountInDoc | count={}", iframeCount);
+        } catch (Exception e) {
+          log.warn("DEBUG | iframeCountInDoc failed", e);
+        }
+
+        // --- Debug: Selenium id count in current context ---
+        try {
+          final int seleniumCount = driver.findElements(By.id(sigId)).size();
+          log.info("DEBUG | seleniumFindElementsById | id={} | count={}", sigId, seleniumCount);
+        } catch (Exception e) {
+          log.warn("DEBUG | seleniumFindElementsById failed | id={}", sigId, e);
+        }
+
+        // ✅ Frame-aware ID search
+        final WebElement elById = findByIdAcrossFrames(driver, sigId);
+
+        if (elById == null) {
+          log.warn("ID_PRESENT_BUT_NOT_FOUND_IN_ANY_FRAME | id={}", sigId);
+        } else {
+          log.info("HARD_MATCH | by=id(frame-scan) | id={}", sigId);
+
+          // NOTE: after findByIdAcrossFrames, driver is already in the correct frame
+          final Map<String, String> attrs = getAllAttributes(js, elById);
+          final String tag = safeTag(elById);
+
+          final SelectorValidationResult healed =
+              buildPreferredXPathValidated(driver, js, elById, tag, attrs);
+
+          logPickedElementDebug(js, elById, healed.selector);
+
+          log.info(
+              "END | resolvedBy=id | healedMatchCount={} | tookMs={}",
+              healed.matchCount,
+              System.currentTimeMillis() - start);
+
+          // ✅ IMPORTANT: restore frame context for caller
+          final String resultXpath = healed.selector;
+          driver.switchTo().defaultContent();
+          return resultXpath;
+        }
+
+      } catch (final Exception e) {
+        // Always restore, even if something went wrong while switching frames
+        try {
+          driver.switchTo().defaultContent();
+        } catch (Exception ignored) {
+          // ignore
+        }
+        log.warn("ID_MATCH_FLOW_FAILED | id={}", sigId, e);
+      }
     }
 
-    // 2) Find matches in DOM (live search) with safe fallback levels
-    final List<WebElement> matches = findElementsByHtmlSignatureWithFallback(driver, sig);
+    // ==========================================================
+    // 2️⃣ SECONDARY MATCHING (only if NO ID or ID not found)
+    // ==========================================================
+    List<WebElement> matches = findElementsByHtmlSignatureWithFallback(driver, sig);
 
     if (matches.isEmpty()) {
-      log.warn(
-          "NOT_FOUND | tag={} | attrs={} | stableClasses={} | textPattern=[{}]",
-          sig.tag,
-          sig.attrs,
-          sig.stableClassTokens,
-          sig.visibleTextPattern);
+      // restore before throwing
+      try {
+        driver.switchTo().defaultContent();
+      } catch (Exception ignored) {
+        // ignore
+      }
       throw new NoSuchElementException(
-          "No element matched HTML signature. tag="
-              + sig.tag
-              + ", attrs="
-              + sig.attrs
-              + ", stableClasses="
-              + sig.stableClassTokens
-              + ", textPattern=["
-              + sig.visibleTextPattern
-              + "]");
+          "No element matched HTML signature. tag=" + sig.tag + ", attrs=" + sig.attrs);
     }
 
     if (indexToPick < 0 || indexToPick >= matches.size()) {
-      log.warn("NOT_FOUND | indexToPick={} out of range | matches={}", indexToPick, matches.size());
+      // restore before throwing
+      try {
+        driver.switchTo().defaultContent();
+      } catch (Exception ignored) {
+        // ignore
+      }
       throw new NoSuchElementException(
-          "indexToPick=" + indexToPick + " out of range. Matches found: " + matches.size());
+          "indexToPick=" + indexToPick + " out of range. Matches=" + matches.size());
     }
 
     final WebElement picked = matches.get(indexToPick);
-
-    // 3) Generate healed XPath + validate
     final Map<String, String> attrs = getAllAttributes(js, picked);
     final String tag = safeTag(picked);
 
     final SelectorValidationResult healed =
         buildPreferredXPathValidated(driver, js, picked, tag, attrs);
 
-    final long ms = System.currentTimeMillis() - start;
+    logPickedElementDebug(js, picked, healed.selector);
+
     log.info(
-        "END | matches={} | pickedIndex={} | healedMatchCount={} | healedIsValid={} | tookMs={}",
+        "END | matches={} | pickedIndex={} | healedMatchCount={} | tookMs={}",
         matches.size(),
         indexToPick,
         healed.matchCount,
-        healed.isValid,
-        ms);
+        System.currentTimeMillis() - start);
 
-    return healed.selector;
+    // ✅ IMPORTANT: restore frame context for caller
+    final String resultXpath = healed.selector;
+    driver.switchTo().defaultContent();
+    return resultXpath;
+  }
+
+  private static WebElement findByIdAcrossFrames(final WebDriver driver, final String id) {
+    Objects.requireNonNull(driver, "driver");
+    Objects.requireNonNull(id, "id");
+
+    driver.switchTo().defaultContent();
+
+    // Try top document
+    final List<WebElement> top = driver.findElements(By.id(id));
+    if (!top.isEmpty()) return top.get(0);
+
+    // Deep search frames (recursive)
+    return findByIdInFramesRecursive(driver, id, 0, 5);
+  }
+
+  private static WebElement findByIdInFramesRecursive(
+      final WebDriver driver, final String id, final int depth, final int maxDepth) {
+
+    if (depth > maxDepth) return null;
+
+    final List<WebElement> frames = driver.findElements(By.cssSelector("iframe,frame"));
+    for (int i = 0; i < frames.size(); i++) {
+      try {
+        driver.switchTo().frame(frames.get(i));
+
+        final List<WebElement> hit = driver.findElements(By.id(id));
+        if (!hit.isEmpty()) {
+          return hit.get(0); // ✅ driver is now in the correct frame
+        }
+
+        final WebElement nested = findByIdInFramesRecursive(driver, id, depth + 1, maxDepth);
+        if (nested != null) return nested;
+
+      } catch (final Exception ignored) {
+        // ignore and continue
+      } finally {
+        // go back to parent for next sibling frame
+        try {
+          driver.switchTo().parentFrame();
+        } catch (final Exception ignored2) {
+          driver.switchTo().defaultContent();
+        }
+      }
+    }
+    return null;
   }
 
   // ============================================================
@@ -476,7 +593,6 @@ public final class AutoLocatorDetector {
 
     final JavascriptExecutor js = (JavascriptExecutor) driver;
 
-    // We do wildcard matching in JS for speed and accuracy against DOM text.
     final Object res =
         js.executeScript(
             "var tag = arguments[0];"
@@ -484,9 +600,7 @@ public final class AutoLocatorDetector {
                 + "var classTokens = arguments[2] || [];"
                 + "var pattern = arguments[3] || '';"
                 + "var IGNORE = arguments[4] || '';"
-                + "var nodeList = document.querySelectorAll(tag);"
-                + "var els = [];"
-                + "for (var i = 0; i < nodeList.length; i++) els.push(nodeList[i]);"
+                + "var pathD = arguments[5] || '';"
                 + "function splitWs(s){ return (s || '').split(/\\s+/).filter(Boolean); }"
                 + "function hasAllClasses(el, tokens){"
                 + "  if (!tokens || tokens.length === 0) return true;"
@@ -495,15 +609,6 @@ public final class AutoLocatorDetector {
                 + "    if (cls.indexOf(tokens[i]) === -1) return false;"
                 + "  }"
                 + "  return true;"
-                + "}"
-                + "function countMatchedClasses(el, tokens){"
-                + "  if (!tokens || tokens.length === 0) return 0;"
-                + "  var cls = splitWs(el.getAttribute('class'));"
-                + "  var c = 0;"
-                + "  for (var i = 0; i < tokens.length; i++){"
-                + "    if (cls.indexOf(tokens[i]) !== -1) c++;"
-                + "  }"
-                + "  return c;"
                 + "}"
                 + "function visibleText(el){"
                 + "  var t = (el.innerText || el.textContent || '');"
@@ -537,30 +642,34 @@ public final class AutoLocatorDetector {
                 + "  }"
                 + "  return true;"
                 + "}"
-                + "function hasSelectedOptionAncestor(el){"
-                + "  var p = el;"
-                + "  while (p){"
-                + "    if (p.getAttribute && p.getAttribute('role') === 'option' && p.getAttribute('aria-selected') === 'true') return true;"
-                + "    p = p.parentElement;"
-                + "  }"
-                + "  return false;"
-                + "}"
-                + "function hasAncestorWithClass(el, clsName){"
-                + "  var p = el;"
-                + "  while (p){"
-                + "    if (p.classList && p.classList.contains(clsName)) return true;"
-                + "    p = p.parentElement;"
-                + "  }"
-                + "  return false;"
-                + "}"
                 + "function isVisible(el){"
                 + "  if (!el) return false;"
                 + "  var r = el.getClientRects();"
                 + "  return r && r.length > 0;"
                 + "}"
-                + "var scored = [];"
+
+                // --- SVG path 'd' matching helpers ---
+                + "function normD(d){ return (d || '').replace(/\\s+/g,' ').trim(); }"
+                + "function extractFirstPathD(svg){"
+                + "  try {"
+                + "    var p = svg.querySelector('path');"
+                + "    if (!p) return '';"
+                + "    return normD(p.getAttribute('d') || '');"
+                + "  } catch(e) { return ''; }"
+                + "}"
+                + "function matchPathD(svg, expectedD){"
+                + "  if (!expectedD || expectedD.length === 0) return true;"
+                + "  var actualD = extractFirstPathD(svg);"
+                + "  return actualD.length > 0 && actualD === normD(expectedD);"
+                + "}"
+                + "var nodeList = document.querySelectorAll(tag);"
+                + "var els = [];"
+                + "for (var i = 0; i < nodeList.length; i++) els.push(nodeList[i]);"
+                + "var out = [];"
                 + "for (var e = 0; e < els.length; e++){"
                 + "  var el = els[e];"
+
+                // attrs match
                 + "  for (var k in attrs){"
                 + "    if (!Object.prototype.hasOwnProperty.call(attrs, k)) continue;"
                 + "    var expected = attrs[k];"
@@ -568,29 +677,31 @@ public final class AutoLocatorDetector {
                 + "    if (actual !== expected){ el = null; break; }"
                 + "  }"
                 + "  if (!el) continue;"
+
+                // class tokens
                 + "  if (!hasAllClasses(el, classTokens)) continue;"
+
+                // ✅ SVG path 'd' match (strong discriminator)
+                + "  var isSvg = (String(tag).toLowerCase() === 'svg');"
+                + "  if (isSvg && pathD && pathD.length > 0) {"
+                + "    if (!matchPathD(el, pathD)) continue;"
+                + "  }"
+
+                // text
                 + "  var text = visibleText(el);"
                 + "  if (!matchText(text, pattern)) continue;"
-                + "  if (!isVisible(el)) continue;"
-                + "  var score = 0;"
-                // ✅ MOST IMPORTANT: prefer elements matching MORE of the requested class tokens
-                + "  var cm = countMatchedClasses(el, classTokens);"
-                + "  score += (cm * 20);"
 
-                // ✅ your contextual preferences
-                + "  if (hasSelectedOptionAncestor(el)) score += 100;"
-                + "  if (hasAncestorWithClass(el, 'MuiChip-root')) score += 50;"
-                + "  scored.push({ el: el, score: score });"
+                // visibility
+                + "  if (!isVisible(el)) continue;"
+                + "  out.push(el);"
                 + "}"
-                + "scored.sort(function(a,b){ return b.score - a.score; });"
-                + "var out = [];"
-                + "for (var i = 0; i < scored.length; i++){ out.push(scored[i].el); }"
                 + "return out;",
             sig.tag,
             sig.attrs,
             sig.stableClassTokens,
             sig.visibleTextPattern,
-            IGNORE_TOKEN);
+            IGNORE_TOKEN,
+            sig.svgPathD == null ? "" : sig.svgPathD);
 
     if (res instanceof List<?>) {
       return (List<WebElement>) res;
@@ -611,39 +722,100 @@ public final class AutoLocatorDetector {
 
     final List<String> candidates = new ArrayList<>();
 
+    // ------------------------------------------------------------------
+    // 1) Strong attributes FIRST (ID must always win)
+    // ------------------------------------------------------------------
     addIfNotBlank(candidates, byAttrXPath(tag, "id", attrs.get("id")));
     addIfNotBlank(candidates, byAttrXPath(tag, "data-testid", attrs.get("data-testid")));
     addIfNotBlank(candidates, byAttrXPath(tag, "name", attrs.get("name")));
     addIfNotBlank(candidates, byAttrXPath(tag, "aria-label", attrs.get("aria-label")));
 
-    final String token = pickStableTextToken(safeText(el));
-    if (!token.isEmpty()) {
+    // ------------------------------------------------------------------
+    // 2) Stable class tokens (ignore css-* noise)
+    // ------------------------------------------------------------------
+    final String classAttr = attrs.getOrDefault("class", "");
+    final List<String> stableTokens = new ArrayList<>();
+
+    if (classAttr != null && !classAttr.isBlank()) {
+      for (final String c : classAttr.trim().split("\\s+")) {
+        if (c.isBlank()) continue;
+        if (c.startsWith("css-")) continue;
+        stableTokens.add(c);
+      }
+    }
+
+    if (!stableTokens.isEmpty()) {
+      final StringBuilder cond = new StringBuilder();
+      for (int i = 0; i < stableTokens.size(); i++) {
+        if (i > 0) cond.append(" and ");
+        final String token = stableTokens.get(i);
+        cond.append(
+            "contains(concat(' ', normalize-space(@class), ' '), "
+                + xpathLiteral(" " + token + " ")
+                + ")");
+      }
+
+      if (isSvgTag(tag)) {
+        candidates.add("//*[(local-name()=" + xpathLiteral(tag) + ") and " + cond + "]");
+      } else {
+        candidates.add("//" + tag + "[" + cond + "]");
+      }
+    }
+
+    // ------------------------------------------------------------------
+    // 3) Visible text token (only if meaningful)
+    // ------------------------------------------------------------------
+    final String textToken = pickStableTextToken(safeText(el));
+    if (!textToken.isEmpty()) {
       if (isSvgTag(tag)) {
         candidates.add(
             "//*[(local-name()="
                 + xpathLiteral(tag)
                 + ") and .//*[contains(normalize-space(), "
-                + xpathLiteral(token)
+                + xpathLiteral(textToken)
                 + ")]]");
       } else {
         candidates.add(
-            "//" + tag + "[.//*[contains(normalize-space(), " + xpathLiteral(token) + ")]]");
+            "//" + tag + "[.//*[contains(normalize-space(), " + xpathLiteral(textToken) + ")]]");
       }
     }
 
+    // ------------------------------------------------------------------
+    // 4) Absolute XPath (LAST RESORT ONLY)
+    // ------------------------------------------------------------------
     final String abs = safeJsString(js, ABSOLUTE_XPATH_JS, el);
     addIfNotBlank(candidates, abs);
 
+    // ------------------------------------------------------------------
+    // 5) Validate candidates
+    //    - Prefer UNIQUE valid match
+    //    - Otherwise pick BEST valid (lowest matchCount)
+    //    - NEVER return unrelated XPath
+    // ------------------------------------------------------------------
+    SelectorValidationResult bestValid = null;
+
     for (final String xp : candidates) {
       final SelectorValidationResult vr = validateXpath(driver, js, el, xp);
-      if (vr.isValid && vr.matchCount == 1) return vr;
+
+      if (vr.isValid && vr.matchCount == 1) {
+        return vr; // 🎯 perfect match
+      }
+
+      if (vr.isValid) {
+        if (bestValid == null || vr.matchCount < bestValid.matchCount) {
+          bestValid = vr;
+        }
+      }
     }
 
-    if (!candidates.isEmpty()) {
-      final String last = candidates.get(candidates.size() - 1);
-      return validateXpath(driver, js, el, last);
+    // ------------------------------------------------------------------
+    // 6) Safe fallback
+    // ------------------------------------------------------------------
+    if (bestValid != null) {
+      return bestValid;
     }
 
+    // Absolutely nothing usable
     return new SelectorValidationResult("", false, 0);
   }
 
@@ -1038,30 +1210,35 @@ public final class AutoLocatorDetector {
     List<WebElement> res = findElementsByHtmlSignature(driver, sig);
     if (!res.isEmpty()) return res;
 
+    // ✅ keep svgPathD in all fallbacks (if available)
+    final String svgPathD = sig.svgPathD == null ? "" : sig.svgPathD;
+
     // 2) relax attrs (keep class tokens + text)
     res =
         findElementsByHtmlSignature(
             driver,
-            new HtmlSignature(sig.tag, Map.of(), sig.stableClassTokens, sig.visibleTextPattern));
+            new HtmlSignature(
+                sig.tag, Map.of(), sig.stableClassTokens, sig.visibleTextPattern, svgPathD));
     if (!res.isEmpty()) return res;
 
     // 3) relax text (keep class tokens; sometimes innerText differs)
     res =
         findElementsByHtmlSignature(
-            driver, new HtmlSignature(sig.tag, sig.attrs, sig.stableClassTokens, ""));
+            driver, new HtmlSignature(sig.tag, sig.attrs, sig.stableClassTokens, "", svgPathD));
     if (!res.isEmpty()) return res;
 
     // 4) relax attrs + text (still keep class tokens)
     res =
         findElementsByHtmlSignature(
-            driver, new HtmlSignature(sig.tag, Map.of(), sig.stableClassTokens, ""));
+            driver, new HtmlSignature(sig.tag, Map.of(), sig.stableClassTokens, "", svgPathD));
     if (!res.isEmpty()) return res;
 
     // 5) last resort: text-only (only if class tokens are empty)
     if (sig.stableClassTokens == null || sig.stableClassTokens.isEmpty()) {
       res =
           findElementsByHtmlSignature(
-              driver, new HtmlSignature(sig.tag, Map.of(), List.of(), sig.visibleTextPattern));
+              driver,
+              new HtmlSignature(sig.tag, Map.of(), List.of(), sig.visibleTextPattern, svgPathD));
       if (!res.isEmpty()) return res;
     }
 
@@ -1095,6 +1272,63 @@ public final class AutoLocatorDetector {
     };
   }
 
+  private static void logPickedElementDebug(
+      final JavascriptExecutor js, final WebElement picked, final String extractedXPath) {
+
+    try {
+      final Object res =
+          js.executeScript(
+              "const el = arguments[0];"
+                  + "const xp = arguments[1] || '';"
+                  + "function safe(v){ return v ? String(v) : ''; }"
+                  + "const tag = safe(el.tagName).toLowerCase();"
+                  + "const id = safe(el.getAttribute('id'));"
+                  + "const name = safe(el.getAttribute('name'));"
+                  + "const aria = safe(el.getAttribute('aria-label'));"
+                  + "const role = safe(el.getAttribute('role'));"
+                  + "const cls = safe(el.getAttribute('class'));"
+                  + "const txt = safe(el.innerText || el.textContent).replace(/\\s+/g,' ').trim().slice(0,120);"
+                  + "const outer = safe(el.outerHTML).replace(/\\s+/g,' ').trim().slice(0,260);"
+                  + "const color = window.getComputedStyle(el).getPropertyValue('color');"
+                  + "const fill = window.getComputedStyle(el).getPropertyValue('fill');"
+                  + "let pathFill = '';"
+                  + "try {"
+                  + "  const p = el.querySelector('path');"
+                  + "  if (p) pathFill = window.getComputedStyle(p).getPropertyValue('fill');"
+                  + "} catch(e) {}"
+                  + "return { tag, id, name, aria, role, cls, txt, outer, color, fill, pathFill, xp };",
+              picked,
+              extractedXPath);
+
+      if (res instanceof java.util.Map<?, ?> m) {
+        log.info(
+            "PICKED_ELEMENT | xp={} | tag={} | id={} | name={} | ariaLabel={} | role={} | class={} | textPreview={} | cssColor={} | cssFill={} | pathFill={} | outerPreview={}",
+            m.get("xp"),
+            m.get("tag"),
+            m.get("id"),
+            m.get("name"),
+            m.get("aria"),
+            m.get("role"),
+            m.get("cls"),
+            m.get("txt"),
+            m.get("color"),
+            m.get("fill"),
+            m.get("pathFill"),
+            m.get("outer"));
+        return;
+      }
+
+      log.info(
+          "PICKED_ELEMENT | xp={} | tag={} | class={}",
+          extractedXPath,
+          safeTag(picked),
+          safeAttr(picked, "class"));
+
+    } catch (final Exception ex) {
+      log.warn("PICKED_ELEMENT debug log failed | xp={}", extractedXPath, ex);
+    }
+  }
+
   /**
    * Signature extracted from a user-provided HTML snippet.
    *
@@ -1107,7 +1341,8 @@ public final class AutoLocatorDetector {
       String tag,
       Map<String, String> attrs,
       List<String> stableClassTokens,
-      String visibleTextPattern) {
+      String visibleTextPattern,
+      String svgPathD) {
 
     static HtmlSignature parse(final String html) {
       final String h = html == null ? "" : html.trim();
@@ -1118,22 +1353,19 @@ public final class AutoLocatorDetector {
 
       final List<String> stableTokens =
           extractStableClassTokens(allAttrs.getOrDefault("class", ""));
-      final String textPattern = extractVisibleText(h); // may include IGNORE_TOKEN
+      final String textPattern = extractVisibleText(h);
 
       final Map<String, String> useful = new LinkedHashMap<>();
 
-      // Common
       copyIfPresent(allAttrs, useful, "id");
       copyIfPresent(allAttrs, useful, "name");
       copyIfPresent(allAttrs, useful, "type");
       copyIfPresent(allAttrs, useful, "role");
       copyIfPresent(allAttrs, useful, "title");
 
-      // Accessibility/testing
       copyIfPresent(allAttrs, useful, "aria-label");
       copyIfPresent(allAttrs, useful, "data-testid");
 
-      // Links/images/inputs
       copyIfPresent(allAttrs, useful, "href");
       copyIfPresent(allAttrs, useful, "src");
       copyIfPresent(allAttrs, useful, "alt");
@@ -1142,12 +1374,11 @@ public final class AutoLocatorDetector {
 
       copyIfPresent(allAttrs, useful, "aria-hidden");
       copyIfPresent(allAttrs, useful, "focusable");
-      copyIfPresent(allAttrs, useful, "viewbox"); // note: you lower-case keys
+      copyIfPresent(allAttrs, useful, "viewbox");
       copyIfPresent(allAttrs, useful, "width");
       copyIfPresent(allAttrs, useful, "height");
       copyIfPresent(allAttrs, useful, "fill");
 
-      // Include all data-* attributes
       for (final Map.Entry<String, String> e : allAttrs.entrySet()) {
         final String k = e.getKey();
         if (k != null && k.startsWith("data-")) {
@@ -1155,7 +1386,13 @@ public final class AutoLocatorDetector {
         }
       }
 
-      return new HtmlSignature(tag, useful, stableTokens, textPattern);
+      // ✅ Extract SVG path d (first path in snippet)
+      String pathD = "";
+      if ("svg".equalsIgnoreCase(tag)) {
+        pathD = extractFirstPathD(h);
+      }
+
+      return new HtmlSignature(tag, useful, stableTokens, textPattern, pathD);
     }
 
     private static void copyIfPresent(
@@ -1169,8 +1406,9 @@ public final class AutoLocatorDetector {
       final int space = html.indexOf(' ', lt + 1);
       final int gt = html.indexOf('>', lt + 1);
       final int end = (space == -1) ? gt : Math.min(space, gt);
-      if (lt == -1 || end == -1)
+      if (lt == -1 || end == -1) {
         throw new IllegalArgumentException("Invalid HTML snippet (no tag found)");
+      }
       return html.substring(lt + 1, end).replace("/", "").trim().toLowerCase(Locale.ROOT);
     }
 
@@ -1209,6 +1447,20 @@ public final class AutoLocatorDetector {
     private static String extractVisibleText(final String html) {
       final String text = html.replaceAll("<[^>]+>", " ");
       return text.replaceAll("\\s+", " ").trim();
+    }
+
+    private static String extractFirstPathD(final String html) {
+      try {
+        final Pattern p =
+            Pattern.compile("<path[^>]*\\sd\\s*=\\s*([\"'])(.*?)\\1", Pattern.CASE_INSENSITIVE);
+        final Matcher m = p.matcher(html);
+        if (m.find()) {
+          return m.group(2) == null ? "" : m.group(2).replaceAll("\\s+", " ").trim();
+        }
+        return "";
+      } catch (final Exception e) {
+        return "";
+      }
     }
   }
 
