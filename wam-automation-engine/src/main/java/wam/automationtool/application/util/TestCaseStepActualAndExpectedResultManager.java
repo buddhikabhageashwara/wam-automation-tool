@@ -203,45 +203,44 @@ public class TestCaseStepActualAndExpectedResultManager {
                 passActualResultTemplate =
                         "Value input completed successfully. " +
                                 "webDriverCacheName: {" + TCS_RESULT_WEB_DRIVER_CACHE_NAME + "}, " +
-                                "elementLocatorType: {" + TCS_RESULT_ELEMENT_LOCATOR_TYPE + "}, " +
-                                "elementLocatorValue: {" + TCS_RESULT_ELEMENT_LOCATOR_VALUE + "}, " +
-                                "elementLocatorIndex: {" + TCS_RESULT_ELEMENT_LOCATOR_INDEX + "}, " +
+                                "elementIndex: {" + TCS_RESULT_ELEMENT_INDEX + "}, " +
+                                "elementHtmlCode: {" + TCS_RESULT_ELEMENT_HTML_CODE + "}, " +
                                 "elementInputValue: {" + TCS_RESULT_ELEMENT_INPUT_VALUE + "}.";
+
                 failActualResultTemplate =
                         "Failed to input value. " +
                                 "webDriverCacheName: {" + TCS_RESULT_WEB_DRIVER_CACHE_NAME + "}, " +
-                                "elementLocatorType: {" + TCS_RESULT_ELEMENT_LOCATOR_TYPE + "}, " +
-                                "elementLocatorValue: {" + TCS_RESULT_ELEMENT_LOCATOR_VALUE + "}, " +
-                                "elementLocatorIndex: {" + TCS_RESULT_ELEMENT_LOCATOR_INDEX + "}, " +
+                                "elementIndex: {" + TCS_RESULT_ELEMENT_INDEX + "}, " +
+                                "elementHtmlCode: {" + TCS_RESULT_ELEMENT_HTML_CODE + "}, " +
                                 "elementInputValue: {" + TCS_RESULT_ELEMENT_INPUT_VALUE + "}.";
+
                 expectedResultTemplate =
                         "System should input elementInputValue: {" + TCS_RESULT_ELEMENT_INPUT_VALUE + "} " +
-                                "into the element identified by elementLocatorType: {" + TCS_RESULT_ELEMENT_LOCATOR_TYPE + "} " +
-                                "and elementLocatorValue: {" + TCS_RESULT_ELEMENT_LOCATOR_VALUE + "} " +
-                                "at elementLocatorIndex: {" + TCS_RESULT_ELEMENT_LOCATOR_INDEX + "} " +
+                                "into the element identified by elementHtmlCode: {" + TCS_RESULT_ELEMENT_HTML_CODE + "} " +
+                                "at elementIndex: {" + TCS_RESULT_ELEMENT_INDEX + "} " +
                                 "using webDriverCacheName: {" + TCS_RESULT_WEB_DRIVER_CACHE_NAME + "}.";
                 break;
+
             case W_ELEMENT_VALUE_READ:
                 passActualResultTemplate =
                         "Element value read completed successfully. " +
                                 "webDriverCacheName: {" + TCS_RESULT_WEB_DRIVER_CACHE_NAME + "}, " +
-                                "elementLocatorType: {" + TCS_RESULT_ELEMENT_LOCATOR_TYPE + "}, " +
-                                "elementLocatorValue: {" + TCS_RESULT_ELEMENT_LOCATOR_VALUE + "}, " +
-                                "elementLocatorIndex: {" + TCS_RESULT_ELEMENT_LOCATOR_INDEX + "}, " +
+                                "elementIndex: {" + TCS_RESULT_ELEMENT_INDEX + "}, " +
+                                "elementHtmlCode: {" + TCS_RESULT_ELEMENT_HTML_CODE + "}, " +
                                 "cacheKey: {" + TCS_RESULT_STRING_CACHE_MAP_KEY + "}, " +
                                 "readValue: {" + TCS_RESULT_STRING_CACHE_MAP_VALUE + "}.";
+
                 failActualResultTemplate =
                         "Failed to read element value. " +
                                 "webDriverCacheName: {" + TCS_RESULT_WEB_DRIVER_CACHE_NAME + "}, " +
-                                "elementLocatorType: {" + TCS_RESULT_ELEMENT_LOCATOR_TYPE + "}, " +
-                                "elementLocatorValue: {" + TCS_RESULT_ELEMENT_LOCATOR_VALUE + "}, " +
-                                "elementLocatorIndex: {" + TCS_RESULT_ELEMENT_LOCATOR_INDEX + "}, " +
+                                "elementIndex: {" + TCS_RESULT_ELEMENT_INDEX + "}, " +
+                                "elementHtmlCode: {" + TCS_RESULT_ELEMENT_HTML_CODE + "}, " +
                                 "cacheKey: {" + TCS_RESULT_STRING_CACHE_MAP_KEY + "}.";
+
                 expectedResultTemplate =
                         "System should read the element value from the element identified by " +
-                                "elementLocatorType: {" + TCS_RESULT_ELEMENT_LOCATOR_TYPE + "}, " +
-                                "elementLocatorValue: {" + TCS_RESULT_ELEMENT_LOCATOR_VALUE + "}, " +
-                                "elementLocatorIndex: {" + TCS_RESULT_ELEMENT_LOCATOR_INDEX + "} " +
+                                "elementHtmlCode: {" + TCS_RESULT_ELEMENT_HTML_CODE + "} " +
+                                "at elementIndex: {" + TCS_RESULT_ELEMENT_INDEX + "} " +
                                 "using webDriverCacheName: {" + TCS_RESULT_WEB_DRIVER_CACHE_NAME + "}, " +
                                 "and save the extracted value into cacheKey: {" + TCS_RESULT_STRING_CACHE_MAP_KEY + "}.";
                 break;
