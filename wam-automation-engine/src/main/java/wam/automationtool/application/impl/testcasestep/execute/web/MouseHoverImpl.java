@@ -26,9 +26,7 @@ package wam.automationtool.application.impl.testcasestep.execute.web;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static wam.automationtool.application.config.AppConstant.AuthConstants.TEST_CASE_STEP_EXECUTION_FAIL_CODE;
-import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_ELEMENT_HTML_CODE;
-import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_ELEMENT_INDEX;
-import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.TCS_RESULT_WEB_DRIVER_CACHE_NAME;
+import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.*;
 import static wam.automationtool.application.config.pre.action.seed.TestCaseStepPreferenceParameterType.TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_HTML_CODE;
 import static wam.automationtool.application.config.pre.action.seed.TestCaseStepPreferenceParameterType.TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_INDEX;
 import static wam.automationtool.application.config.pre.action.seed.TestCaseStepPreferenceParameterType.TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME;
@@ -141,7 +139,9 @@ public class MouseHoverImpl extends TestCaseStepExecutorBase implements TestCase
 
     final String extractedXPath =
         AutoLocatorDetector.selfHealXPathByHtml(webDriver, elementHTMLCode, elementIndex);
-
+    resultParameters.put(
+        TCS_RESULT_PICKED_ELEMENT,
+        AutoLocatorDetector.getOuterHtmlByXPath(webDriver, extractedXPath));
     mouseHover(webDriver, extractedXPath, elementIndex);
   }
 
@@ -149,8 +149,8 @@ public class MouseHoverImpl extends TestCaseStepExecutorBase implements TestCase
       final WebDriver webDriver, final String extractedXPath, final int elementIndex) {
     if (Objects.nonNull(webDriver)) {
       final WebElement webElement = getWebElement(webDriver, "xpath", extractedXPath, elementIndex);
-        final Actions actions = new Actions(webDriver);
-        actions.moveToElement(webElement).perform();
+      final Actions actions = new Actions(webDriver);
+      actions.moveToElement(webElement).perform();
     } else {
       throw new TestCaseStepExecutionFailException(
           BAD_REQUEST, TEST_CASE_STEP_EXECUTION_FAIL_CODE, "mouse hover failed");

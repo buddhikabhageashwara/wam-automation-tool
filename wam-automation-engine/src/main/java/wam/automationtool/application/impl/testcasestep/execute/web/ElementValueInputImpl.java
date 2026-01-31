@@ -124,7 +124,9 @@ public class ElementValueInputImpl extends TestCaseStepExecutorBase
 
     final String extractedXPath =
         AutoLocatorDetector.selfHealXPathByHtml(webDriver, elementHTMLCode, elementIndex);
-
+    resultParameters.put(
+        TCS_RESULT_PICKED_ELEMENT,
+        AutoLocatorDetector.getOuterHtmlByXPath(webDriver, extractedXPath));
     inputValueToElement(webDriver, extractedXPath, elementIndex, resolvedInputValue);
   }
 

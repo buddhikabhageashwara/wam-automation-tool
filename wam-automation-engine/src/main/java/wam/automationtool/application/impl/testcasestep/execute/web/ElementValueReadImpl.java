@@ -27,11 +27,8 @@ package wam.automationtool.application.impl.testcasestep.execute.web;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static wam.automationtool.application.config.AppConstant.AuthConstants.TEST_CASE_STEP_EXECUTION_FAIL_CODE;
 import static wam.automationtool.application.config.AppConstant.TestCaseStepResultConstant.*;
-import static wam.automationtool.application.config.pre.action.seed.TestCaseStepPreferenceParameterType.TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_INDEX;
-import static wam.automationtool.application.config.pre.action.seed.TestCaseStepPreferenceParameterType.TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_TYPE;
-import static wam.automationtool.application.config.pre.action.seed.TestCaseStepPreferenceParameterType.TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_VALUE;
-import static wam.automationtool.application.config.pre.action.seed.TestCaseStepPreferenceParameterType.TCS_PREFERENCE_PARAMETER_TYPE_STRING_TYPE_CACHE_ITEM_KEY;
-import static wam.automationtool.application.config.pre.action.seed.TestCaseStepPreferenceParameterType.TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME;
+import static wam.automationtool.application.config.pre.action.seed.TestCaseStepPreferenceParameterType.*;
+import static wam.automationtool.application.config.pre.action.seed.TestCaseStepPreferenceParameterType.TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_INDEX;
 
 import java.util.LinkedHashMap;
 import java.util.Locale;
@@ -42,6 +39,7 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.Select;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import wam.automationtool.application.config.pre.action.seed.TestCaseStepPreferenceParameterType;
 import wam.automationtool.application.dto.cache.CacheDataDto;
 import wam.automationtool.application.dto.execute.ActualAndExpectedResultDto;
 import wam.automationtool.application.dto.execute.TestCaseStepExecuteRequestDto;
@@ -50,6 +48,7 @@ import wam.automationtool.application.exception.TestCaseStepExecutionFailExcepti
 import wam.automationtool.application.impl.testcasestep.execute.TestCaseStepExecutor;
 import wam.automationtool.application.impl.testcasestep.execute.TestCaseStepExecutorBase;
 import wam.automationtool.application.util.AgentRequestManager;
+import wam.automationtool.application.util.AutoLocatorDetector;
 import wam.automationtool.application.util.DateTimeManager;
 import wam.automationtool.domain.entity.testcasestep.TestCaseStepExecutionStatus;
 import wam.automationtool.domain.entity.testcasestep.TestCaseStepType;
@@ -111,10 +110,10 @@ public class ElementValueReadImpl extends TestCaseStepExecutorBase implements Te
         TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME.getParameterName());
     getAndValidateTCSPreferenceParameterTypeExistence(
         extractedPreferenceParameters,
-        TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_TYPE.getParameterName());
+        TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_HTML_CODE.getParameterName());
     getAndValidateTCSPreferenceParameterTypeExistence(
         extractedPreferenceParameters,
-        TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_VALUE.getParameterName());
+        TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_INDEX.getParameterName());
     getAndValidateTCSPreferenceParameterTypeExistence(
         extractedPreferenceParameters,
         TCS_PREFERENCE_PARAMETER_TYPE_STRING_TYPE_CACHE_ITEM_KEY.getParameterName());
@@ -123,52 +122,51 @@ public class ElementValueReadImpl extends TestCaseStepExecutorBase implements Te
             TCS_PREFERENCE_PARAMETER_TYPE_WEB_DRIVER_CACHE_NAME.getParameterName());
     resultParameters.put(TCS_RESULT_WEB_DRIVER_CACHE_NAME, webDriverCacheName);
     resultParameters.put(
-        TCS_RESULT_ELEMENT_LOCATOR_TYPE,
+        TCS_RESULT_ELEMENT_HTML_CODE,
         extractedPreferenceParameters.get(
-            TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_TYPE.getParameterName()));
+            TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_HTML_CODE.getParameterName()));
     resultParameters.put(
-        TCS_RESULT_ELEMENT_LOCATOR_VALUE,
+        TCS_RESULT_ELEMENT_INDEX,
         extractedPreferenceParameters.get(
-            TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_VALUE.getParameterName()));
-    resultParameters.put(
-        TCS_RESULT_ELEMENT_LOCATOR_INDEX,
-        extractedPreferenceParameters.get(
-            TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_INDEX.getParameterName()));
+            TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_INDEX.getParameterName()));
     resultParameters.put(
         TCS_RESULT_STRING_CACHE_MAP_KEY,
         extractedPreferenceParameters.get(
-              TCS_PREFERENCE_PARAMETER_TYPE_STRING_TYPE_CACHE_ITEM_KEY.getParameterName()));
-    final WebDriver driver = getActiveWebDriverByName(webDriverCacheName);
-    final String locatorType =
+            TCS_PREFERENCE_PARAMETER_TYPE_STRING_TYPE_CACHE_ITEM_KEY.getParameterName()));
+    final WebDriver webDriver = getActiveWebDriverByName(webDriverCacheName);
+    final String elementHTMLCode =
         extractedPreferenceParameters.get(
-            TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_TYPE.getParameterName());
-    final String locatorValue =
-        extractedPreferenceParameters.get(
-            TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_VALUE.getParameterName());
+            TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_HTML_CODE.getParameterName());
+    final int elementIndex =
+        Integer.parseInt(
+            extractedPreferenceParameters.get(
+                TestCaseStepPreferenceParameterType.TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_INDEX
+                    .getParameterName()));
+    final String extractedXPath =
+        AutoLocatorDetector.selfHealXPathByHtml(webDriver, elementHTMLCode, elementIndex);
+    resultParameters.put(
+        TCS_RESULT_PICKED_ELEMENT,
+        AutoLocatorDetector.getOuterHtmlByXPath(webDriver, extractedXPath));
     final String keyToSaveReadValue =
         extractedPreferenceParameters.get(
             TCS_PREFERENCE_PARAMETER_TYPE_STRING_TYPE_CACHE_ITEM_KEY.getParameterName());
-    final int locatorIndex =
-        Integer.parseInt(
-            extractedPreferenceParameters.get(
-                TCS_PREFERENCE_PARAMETER_TYPE_ELEMENT_LOCATOR_INDEX.getParameterName()));
+
     final String executionId = testCaseStepExecuteRequestDto.getExecutionId();
-    readElement(resultParameters, driver, locatorType, locatorValue, locatorIndex, keyToSaveReadValue, executionId);
+    readElement(
+        resultParameters, webDriver, extractedXPath, elementIndex, keyToSaveReadValue, executionId);
   }
 
   private void readElement(
       final LinkedHashMap<String, String> resultParameters,
-      final WebDriver driver,
-      final String locatorType,
-      final String locatorValue,
-      final int locatorIndex,
+      final WebDriver webDriver,
+      final String extractedXPath,
+      final int elementIndex,
       final String keyToSaveReadValue,
       final String executionId) {
     try {
-      final WebElement webElement = getWebElement(driver, locatorType, locatorValue, locatorIndex);
+      final WebElement webElement = getWebElement(webDriver, "xpath", extractedXPath, elementIndex);
       final String extractedValue = readElementValueAsString(webElement, executionId);
-        resultParameters.put(
-                TCS_RESULT_STRING_CACHE_MAP_VALUE, extractedValue);
+      resultParameters.put(TCS_RESULT_STRING_CACHE_MAP_VALUE, extractedValue);
       final CacheDataDto cacheDataDto = getCacheDataDto(executionId);
       final Map<String, String> updatedStringCacheMap =
           buildUpdatedStringCacheMap(cacheDataDto, keyToSaveReadValue, extractedValue);
@@ -178,12 +176,10 @@ public class ElementValueReadImpl extends TestCaseStepExecutorBase implements Te
         throw (TestCaseStepExecutionFailException) exception;
       }
       final String msg =
-          "failed to read element value, locatorType: "
-              + safe(locatorType)
-              + ", locatorValue: "
-              + safe(locatorValue)
-              + ", locatorIndex: "
-              + locatorIndex
+          "failed to read element value, extractedXPath: "
+              + safe(extractedXPath)
+              + ", elementIndex: "
+              + elementIndex
               + ", keyToSave: "
               + safe(keyToSaveReadValue);
       log.error("executionId: {}, message: {}", executionId, msg, exception);

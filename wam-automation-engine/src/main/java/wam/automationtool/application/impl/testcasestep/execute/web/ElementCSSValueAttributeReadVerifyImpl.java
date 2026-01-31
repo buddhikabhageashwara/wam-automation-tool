@@ -131,6 +131,9 @@ public class ElementCSSValueAttributeReadVerifyImpl extends TestCaseStepExecutor
 
     final WebDriver webDriver = getActiveWebDriverByName(webDriverCacheName);
     final String extractedXPath = selfHealXpath(webDriver, elementHTMLCode, elementIndex);
+    resultParameters.put(
+        TCS_RESULT_PICKED_ELEMENT,
+        AutoLocatorDetector.getOuterHtmlByXPath(webDriver, extractedXPath));
     final WebElement webElement = resolveWebElementByXpath(webDriver, extractedXPath, elementIndex);
 
     final RenderedCssChecker.Result result =

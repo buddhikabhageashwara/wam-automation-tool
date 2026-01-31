@@ -145,6 +145,7 @@ public final class AppConstant {
     public static final String TCS_RESULT_CSS_EXPECTED_VALUE = "cssExpectedValue";
     public static final String TCS_RESULT_CSS_EXPECTED_VALUE_UNMATCHED_REASON = "cssExpectedValueUnmatchedReason";
     public static final String TCS_RESULT_CSS_ACTUAL_VALUE = "cssActualValue";
+    public static final String TCS_RESULT_PICKED_ELEMENT = "pickedElement";
 
     private TestCaseStepResultConstant() {
       throw new IllegalStateException(UTILITY_CLASS);

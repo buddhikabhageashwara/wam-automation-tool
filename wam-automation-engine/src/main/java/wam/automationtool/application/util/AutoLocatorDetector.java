@@ -1472,4 +1472,126 @@ public final class AutoLocatorDetector {
       this.matchCount = matchCount;
     }
   }
+
+    // ============================================================
+    // Public API - Get element HTML by XPath (safe)
+    // ============================================================
+
+    public static final String ELEMENT_NOT_FOUND = "ELEMENT_NOT_FOUND";
+
+    /**
+     * Returns the actual outerHTML of the first element matched by the given XPath.
+     *
+     * <p>Behavior:
+     * <ul>
+     *   <li>If found: returns {@code "xpath: <xp>, html: <outerHtml>"}.</li>
+     *   <li>If not found OR any error occurs: returns {@link #ELEMENT_NOT_FOUND}.</li>
+     * </ul>
+     *
+     * <p>This method is frame-aware and restores {@code defaultContent()} before returning.
+     */
+    public static String getOuterHtmlByXPath(final WebDriver driver, final String xpath) {
+        Objects.requireNonNull(driver, "driver");
+        Objects.requireNonNull(xpath, "xpath");
+
+        final String xp = xpath.trim();
+        if (xp.isEmpty()) return ELEMENT_NOT_FOUND;
+
+        log.info("START | xpath={}", xp);
+
+        final long start = System.currentTimeMillis();
+
+        try {
+            waitForDomReady(driver);
+
+            // Always start from top document
+            driver.switchTo().defaultContent();
+
+            final WebElement found = findByXPathAcrossFrames(driver, xp);
+            if (found == null) {
+                log.warn("NOT_FOUND | xpath={}", xp);
+                return ELEMENT_NOT_FOUND;
+            }
+
+            final JavascriptExecutor js = (JavascriptExecutor) driver;
+            final String html = safeOuterHtml(js, found);
+
+            final String result = "xpath: " + xp + ", html: " + (html == null ? "" : html);
+
+            log.info(
+                    "END | xpath={} | htmlLength={} | tookMs={}",
+                    xp,
+                    html == null ? 0 : html.length(),
+                    System.currentTimeMillis() - start);
+
+            return result;
+
+        } catch (final Exception e) {
+            log.error("ERROR | xpath={}", xp, e);
+            return ELEMENT_NOT_FOUND;
+
+        } finally {
+            try {
+                driver.switchTo().defaultContent();
+            } catch (final Exception ignored) {
+                // ignore
+            }
+        }
+    }
+
+    private static WebElement findByXPathAcrossFrames(final WebDriver driver, final String xpath) {
+        Objects.requireNonNull(driver, "driver");
+        Objects.requireNonNull(xpath, "xpath");
+
+        // Try top document
+        try {
+            final List<WebElement> top = driver.findElements(By.xpath(xpath));
+            if (!top.isEmpty()) return top.get(0);
+        } catch (final Exception ignored) {
+            // ignore
+        }
+
+        // Deep search frames (recursive)
+        return findByXPathInFramesRecursive(driver, xpath, 0, 5);
+    }
+
+    private static WebElement findByXPathInFramesRecursive(
+            final WebDriver driver, final String xpath, final int depth, final int maxDepth) {
+
+        if (depth > maxDepth) return null;
+
+        final List<WebElement> frames = driver.findElements(By.cssSelector("iframe,frame"));
+        for (int i = 0; i < frames.size(); i++) {
+            try {
+                driver.switchTo().frame(frames.get(i));
+
+                try {
+                    final List<WebElement> hit = driver.findElements(By.xpath(xpath));
+                    if (!hit.isEmpty()) {
+                        return hit.get(0); // ✅ driver is now in the correct frame
+                    }
+                } catch (final Exception ignored) {
+                    // ignore
+                }
+
+                final WebElement nested = findByXPathInFramesRecursive(driver, xpath, depth + 1, maxDepth);
+                if (nested != null) return nested;
+
+            } catch (final Exception ignored) {
+                // ignore
+            } finally {
+                try {
+                    driver.switchTo().parentFrame();
+                } catch (final Exception ignored2) {
+                    try {
+                        driver.switchTo().defaultContent();
+                    } catch (final Exception ignored3) {
+                        // ignore
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
 }

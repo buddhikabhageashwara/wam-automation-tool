@@ -204,15 +204,15 @@ public class TestCaseStepActualAndExpectedResultManager {
                         "Value input completed successfully. " +
                                 "webDriverCacheName: {" + TCS_RESULT_WEB_DRIVER_CACHE_NAME + "}, " +
                                 "elementIndex: {" + TCS_RESULT_ELEMENT_INDEX + "}, " +
-                                "elementHtmlCode: {" + TCS_RESULT_ELEMENT_HTML_CODE + "}, " +
-                                "elementInputValue: {" + TCS_RESULT_ELEMENT_INPUT_VALUE + "}.";
+                                "elementInputValue: {" + TCS_RESULT_ELEMENT_INPUT_VALUE + "}, " +
+                                "pickedElement: {" + TCS_RESULT_PICKED_ELEMENT + "}.";
 
                 failActualResultTemplate =
                         "Failed to input value. " +
                                 "webDriverCacheName: {" + TCS_RESULT_WEB_DRIVER_CACHE_NAME + "}, " +
                                 "elementIndex: {" + TCS_RESULT_ELEMENT_INDEX + "}, " +
-                                "elementHtmlCode: {" + TCS_RESULT_ELEMENT_HTML_CODE + "}, " +
-                                "elementInputValue: {" + TCS_RESULT_ELEMENT_INPUT_VALUE + "}.";
+                                "elementInputValue: {" + TCS_RESULT_ELEMENT_INPUT_VALUE + "}, " +
+                                "pickedElement: {" + TCS_RESULT_PICKED_ELEMENT + "}.";
 
                 expectedResultTemplate =
                         "System should input elementInputValue: {" + TCS_RESULT_ELEMENT_INPUT_VALUE + "} " +
@@ -226,16 +226,16 @@ public class TestCaseStepActualAndExpectedResultManager {
                         "Element value read completed successfully. " +
                                 "webDriverCacheName: {" + TCS_RESULT_WEB_DRIVER_CACHE_NAME + "}, " +
                                 "elementIndex: {" + TCS_RESULT_ELEMENT_INDEX + "}, " +
-                                "elementHtmlCode: {" + TCS_RESULT_ELEMENT_HTML_CODE + "}, " +
                                 "cacheKey: {" + TCS_RESULT_STRING_CACHE_MAP_KEY + "}, " +
-                                "readValue: {" + TCS_RESULT_STRING_CACHE_MAP_VALUE + "}.";
+                                "readValue: {" + TCS_RESULT_STRING_CACHE_MAP_VALUE + "}, " +
+                                "pickedElement: {" + TCS_RESULT_PICKED_ELEMENT + "}.";
 
                 failActualResultTemplate =
                         "Failed to read element value. " +
                                 "webDriverCacheName: {" + TCS_RESULT_WEB_DRIVER_CACHE_NAME + "}, " +
                                 "elementIndex: {" + TCS_RESULT_ELEMENT_INDEX + "}, " +
-                                "elementHtmlCode: {" + TCS_RESULT_ELEMENT_HTML_CODE + "}, " +
-                                "cacheKey: {" + TCS_RESULT_STRING_CACHE_MAP_KEY + "}.";
+                                "cacheKey: {" + TCS_RESULT_STRING_CACHE_MAP_KEY + "}, " +
+                                "pickedElement: {" + TCS_RESULT_PICKED_ELEMENT + "}.";
 
                 expectedResultTemplate =
                         "System should read the element value from the element identified by " +
@@ -251,7 +251,7 @@ public class TestCaseStepActualAndExpectedResultManager {
                             "elementIndex: {" + TCS_RESULT_ELEMENT_INDEX + "}, " +
                             "cssAttributeName: {" + TCS_RESULT_CSS_ATTRIBUTE_NAME + "}, " +
                             "cssExpectedValue: {" + TCS_RESULT_CSS_EXPECTED_VALUE + "}, " +
-                            "elementHtmlCode: {" + TCS_RESULT_ELEMENT_HTML_CODE + "}.";
+                            "pickedElement: {" + TCS_RESULT_PICKED_ELEMENT + "}.";
             failActualResultTemplate =
                     "Rendered CSS attribute verification failed. " +
                             "webDriverCacheName: {" + TCS_RESULT_WEB_DRIVER_CACHE_NAME + "}, " +
@@ -260,7 +260,7 @@ public class TestCaseStepActualAndExpectedResultManager {
                             "cssExpectedValue: {" + TCS_RESULT_CSS_EXPECTED_VALUE + "}, " +
                             "cssActualRenderedValue: {" + TCS_RESULT_CSS_ACTUAL_VALUE + "}, " +
                             "unmatchedReason: {" + TCS_RESULT_CSS_EXPECTED_VALUE_UNMATCHED_REASON + "}, " +
-                            "elementHtmlCode: {" + TCS_RESULT_ELEMENT_HTML_CODE + "}.";
+                            "pickedElement: {" + TCS_RESULT_PICKED_ELEMENT + "}.";
             expectedResultTemplate =
                     "System should verify the rendered CSS attribute value for the element identified by " +
                             "elementHtmlCode: {" + TCS_RESULT_ELEMENT_HTML_CODE + "} " +
@@ -274,12 +274,12 @@ public class TestCaseStepActualAndExpectedResultManager {
                         "Element click completed successfully. " +
                                 "webDriverCacheName: {" + TCS_RESULT_WEB_DRIVER_CACHE_NAME + "}, " +
                                 "elementIndex: {" + TCS_RESULT_ELEMENT_INDEX + "}, " +
-                                "elementHtmlCode: {" + TCS_RESULT_ELEMENT_HTML_CODE + "}.";
+                                "pickedElement: {" + TCS_RESULT_PICKED_ELEMENT + "}.";
                 failActualResultTemplate =
                         "Failed to click the element. " +
                                 "webDriverCacheName: {" + TCS_RESULT_WEB_DRIVER_CACHE_NAME + "}, " +
                                 "elementIndex: {" + TCS_RESULT_ELEMENT_INDEX + "}, " +
-                                "elementHtmlCode: {" + TCS_RESULT_ELEMENT_HTML_CODE + "}.";
+                                "pickedElement: {" + TCS_RESULT_PICKED_ELEMENT + "}.";
                 expectedResultTemplate =
                         "System should click the element identified by elementHtmlCode: {"
                                 + TCS_RESULT_ELEMENT_HTML_CODE + "} " +
@@ -291,12 +291,12 @@ public class TestCaseStepActualAndExpectedResultManager {
                         "Mouse hover completed successfully. " +
                                 "webDriverCacheName: {" + TCS_RESULT_WEB_DRIVER_CACHE_NAME + "}, " +
                                 "elementIndex: {" + TCS_RESULT_ELEMENT_INDEX + "}, " +
-                                "elementHtmlCode: {" + TCS_RESULT_ELEMENT_HTML_CODE + "}.";
+                                "pickedElement: {" + TCS_RESULT_PICKED_ELEMENT + "}.";
                 failActualResultTemplate =
                         "Failed to mouse hover on the element. " +
                                 "webDriverCacheName: {" + TCS_RESULT_WEB_DRIVER_CACHE_NAME + "}, " +
                                 "elementIndex: {" + TCS_RESULT_ELEMENT_INDEX + "}, " +
-                                "elementHtmlCode: {" + TCS_RESULT_ELEMENT_HTML_CODE + "}.";
+                                "pickedElement: {" + TCS_RESULT_PICKED_ELEMENT + "}.";
                 expectedResultTemplate =
                         "System should mouse hover on the element identified by elementHtmlCode: {"
                                 + TCS_RESULT_ELEMENT_HTML_CODE + "} " +
