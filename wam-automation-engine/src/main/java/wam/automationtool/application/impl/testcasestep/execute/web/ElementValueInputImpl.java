@@ -233,6 +233,7 @@ public class ElementValueInputImpl extends TestCaseStepExecutorBase
       final String inputValue) {
     if (Objects.nonNull(webDriver)) {
       final WebElement webElement = getWebElement(webDriver, "xpath", extractedXPath, elementIndex);
+      webElement.clear();
       webElement.sendKeys(inputValue);
     } else {
       throw new TestCaseStepExecutionFailException(
