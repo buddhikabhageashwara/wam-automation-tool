@@ -148,7 +148,7 @@ public class MouseHoverImpl extends TestCaseStepExecutorBase implements TestCase
   private void mouseHover(
       final WebDriver webDriver, final String extractedXPath, final int elementIndex) {
     if (Objects.nonNull(webDriver)) {
-      final WebElement webElement = getWebElement(webDriver, "xpath", extractedXPath, elementIndex);
+      final WebElement webElement = getWebElement(webDriver, "xpath", extractedXPath, 0);
       final Actions actions = new Actions(webDriver);
       actions.moveToElement(webElement).perform();
     } else {

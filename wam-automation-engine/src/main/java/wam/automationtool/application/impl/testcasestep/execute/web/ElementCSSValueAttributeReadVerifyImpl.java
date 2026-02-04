@@ -290,7 +290,7 @@ public class ElementCSSValueAttributeReadVerifyImpl extends TestCaseStepExecutor
         elementIndex,
         extractedXPath);
 
-    return getWebElement(webDriver, "xpath", extractedXPath, elementIndex);
+    return getWebElement(webDriver, "xpath", extractedXPath, 0);
   }
 
   /**

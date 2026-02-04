@@ -147,7 +147,7 @@ public class ElementClickImpl extends TestCaseStepExecutorBase implements TestCa
   private void clickElement(
       final WebDriver webDriver, final String extractedXPath, final int elementIndex) {
     if (Objects.nonNull(webDriver)) {
-      final WebElement webElement = getWebElement(webDriver, "xpath", extractedXPath, elementIndex);
+      final WebElement webElement = getWebElement(webDriver, "xpath", extractedXPath, 0);
       webElement.click();
     } else {
       throw new TestCaseStepExecutionFailException(

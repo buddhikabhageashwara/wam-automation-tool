@@ -232,7 +232,7 @@ public class ElementValueInputImpl extends TestCaseStepExecutorBase
       final int elementIndex,
       final String inputValue) {
     if (Objects.nonNull(webDriver)) {
-      final WebElement webElement = getWebElement(webDriver, "xpath", extractedXPath, elementIndex);
+      final WebElement webElement = getWebElement(webDriver, "xpath", extractedXPath, 0);
       webElement.clear();
       webElement.sendKeys(inputValue);
     } else {

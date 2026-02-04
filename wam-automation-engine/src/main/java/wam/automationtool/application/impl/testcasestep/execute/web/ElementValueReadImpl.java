@@ -164,7 +164,7 @@ public class ElementValueReadImpl extends TestCaseStepExecutorBase implements Te
       final String keyToSaveReadValue,
       final String executionId) {
     try {
-      final WebElement webElement = getWebElement(webDriver, "xpath", extractedXPath, elementIndex);
+      final WebElement webElement = getWebElement(webDriver, "xpath", extractedXPath, 0);
       final String extractedValue = readElementValueAsString(webElement, executionId);
       resultParameters.put(TCS_RESULT_STRING_CACHE_MAP_VALUE, extractedValue);
       final CacheDataDto cacheDataDto = getCacheDataDto(executionId);
